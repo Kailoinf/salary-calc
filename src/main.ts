@@ -437,7 +437,7 @@ function ensureBDay8hDates(
     .map((d) => {
       const date = d.date();
       const is8h = bDay8hSet.has(bDay8hKey(year, month, date));
-      return `<label><input type="checkbox" class="bday8h-date" value="${date}"${is8h ? " checked" : ""}> ${date}日(${WEEKDAY_NAMES[d.day()]}) 仅8h</label>`;
+      return `<label><input type="checkbox" class="bday8h-date" value="${date}"${is8h ? " checked" : ""}> ${date}日(${WEEKDAY_NAMES[d.day()]})</label>`;
     })
     .join("");
   container.innerHTML = `<div class="checkbox-grid">${items}</div>`;
