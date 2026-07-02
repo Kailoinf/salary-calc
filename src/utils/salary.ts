@@ -90,8 +90,8 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
   // f. B 班双倍加班费（全天 11h × 2 倍）
   const tuesdayDoublePay = round2(stats.bDayCount * 11 * 2 * baseHourlyRate);
 
-  // g. F 班补差（法定节假日全天 11h × 2 倍，底薪已覆盖 1 倍）
-  const holidayExtra = round2(stats.fDayCount * 11 * 2 * baseHourlyRate);
+  // g. F 班节假日（全天 11h × 3 倍）
+  const holidayExtra = round2(stats.fDayCount * 11 * 3 * baseHourlyRate);
 
   // h. 夜班补贴（夜班月：20 × 总工作日数；白班月：0）
   const nightSubsidy =

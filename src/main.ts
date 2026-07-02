@@ -351,7 +351,7 @@ function renderSingleResult(r: MonthlyResult): void {
         <tr><td>固定薪资合计</td><td style="text-align:right">${fmt(r.fixedTotal)}</td></tr>
         <tr><td>A班加班(3h×1.5倍)</td><td class="income" style="text-align:right">${fmt(r.weekdayOvertime)}</td></tr>
         <tr><td>B班双倍(11h×2倍)</td><td class="income" style="text-align:right">${fmt(r.tuesdayDoublePay)}</td></tr>
-        <tr><td>F班补差(11h×2倍)</td><td class="income" style="text-align:right">${fmt(r.holidayExtra)}</td></tr>
+        <tr><td>F班节假日(11h×3倍)</td><td class="income" style="text-align:right">${fmt(r.holidayExtra)}</td></tr>
         <tr><td>夜班补贴</td><td class="income" style="text-align:right">${fmt(r.nightSubsidy)}</td></tr>
         <tr class="total-row"><td>税前总工资</td><td style="text-align:right">${fmt(r.grossPay)}</td></tr>
         <tr><td>社保-养老(8%)</td><td class="deduction" style="text-align:right">-${fmt(r.socialInsurance.pension)}</td></tr>
@@ -508,7 +508,7 @@ function formatSingleText(r: MonthlyResult): string {
     `固定薪资：${fmt(r.fixedTotal)}`,
     `A班加班(3h×1.5)：${fmt(r.weekdayOvertime)}`,
     `B班双倍(11h×2)：${fmt(r.tuesdayDoublePay)}`,
-    `F班补差(11h×2)：${fmt(r.holidayExtra)}`,
+    `F班节假日(11h×3)：${fmt(r.holidayExtra)}`,
     `夜班补贴：${fmt(r.nightSubsidy)}`,
     `税前总工资：${fmt(r.grossPay)}`,
     `社保扣款：-${fmt(r.socialInsurance.total)}（养老 ${fmt(r.socialInsurance.pension)} / 医疗 ${fmt(r.socialInsurance.medical)} / 失业 ${fmt(r.socialInsurance.unemployment)} / 大额长护 ${fmt(r.socialInsurance.fixed)}）`,
