@@ -25,6 +25,7 @@ export interface MonthlyInput {
   year: number;
   month: number; // 1-12
   restDayWeekday: number; // C 班（休息日）周几，0=周日~6=周六，默认 3（周三）
+  shiftType: ShiftType;     // 白班 day / 夜班 night
   noOvertimeDates: number[]; // 当月 A 班日中"不加班"的日期（几号）集合
   noOvertimeWeekdays: number[]; // "不加班"的周几集合（0~6），命中即该 A 班日不计加班
   config: SalaryConfig;
@@ -47,7 +48,7 @@ export interface MonthlyResult {
   fixedTotal: number; // 固定薪资合计
   weekdayOvertime: number; // A 班加班费（加班 3h × 1.5 倍）
   tuesdayDoublePay: number; // B 班双倍（全天 11h × 2 倍）
-  holidayExtra: number; // F 班补差（全天 11h × 2 倍，底薪已覆盖 1 倍）
+  holidayExtra: number; // F班节假日加班（全天 11h × 3 倍）
   nightSubsidy: number; // 夜班补贴
   grossPay: number; // 税前总工资
   // 扣款明细

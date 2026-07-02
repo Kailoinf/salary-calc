@@ -8,12 +8,12 @@ importers:
 
   .:
     dependencies:
-      chinese-workday:
-        specifier: ^2.0.0
-        version: 2.0.0
       dayjs:
         specifier: ^1.11.21
         version: 1.11.21
+      lunar-typescript:
+        specifier: ^1.8.6
+        version: 1.8.6
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -146,9 +146,6 @@ packages:
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
 
-  chinese-workday@2.0.0:
-    resolution: {integrity: sha512-K2i+1fmZrb7xdjjbQg6AUIlKuav2NwLWVWLvdTJqbbGBfkn63UuKqq//Z6vclqrmoy8wfhaAZ50sjGEFD9CRjg==}
-
   dayjs@1.11.21:
     resolution: {integrity: sha512-98IT+HOahAisibz/yjKbzuOBwYcjJ7BCLPzARyHiyEBmRz4fatF+KPJszEHXsGYjUG234aH/cOjW1wwTbKUZlA==}
 
@@ -243,6 +240,9 @@ packages:
   lightningcss@1.32.0:
     resolution: {integrity: sha512-NXYBzinNrblfraPGyrbPoD19C1h9lfI/1mzgWYvXUTe414Gz/X1FD2XBZSZM7rRTrMA8JL3OtAaGifrIKhQ5yQ==}
     engines: {node: '>= 12.0.0'}
+
+  lunar-typescript@1.8.6:
+    resolution: {integrity: sha512-5Eo4T/cnuXfrgO4k5LCpOGHIUOuz5hCF/IfNv0T29WY2shR36Hiz+ecN9WjnUuxUKhql9gbOkPaQoqLFKtPRNA==}
 
   nanoid@3.3.15:
     resolution: {integrity: sha512-y7Wygv/7mEOvxTuEQDB8StXdMRBWf1kR/tlhAzBRUFkB2jfcLOAxO/SHmOO2zgz1pVgK29/kyupn059/bCHdjA==}
@@ -410,8 +410,6 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  chinese-workday@2.0.0: {}
-
   dayjs@1.11.21: {}
 
   detect-libc@2.1.2: {}
@@ -471,6 +469,8 @@ snapshots:
       lightningcss-linux-x64-musl: 1.32.0
       lightningcss-win32-arm64-msvc: 1.32.0
       lightningcss-win32-x64-msvc: 1.32.0
+
+  lunar-typescript@1.8.6: {}
 
   nanoid@3.3.15: {}
 

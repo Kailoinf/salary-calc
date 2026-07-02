@@ -250,6 +250,12 @@ function readRestDayWeekday(id: string): number {
   return Number.isFinite(v) ? Math.round(v) : 3;
 }
 
+/** 读取班次 select 的值 (day/night) */
+function readShiftType(id: string): "day" | "night" {
+  const el = getById<HTMLSelectElement>(id);
+  return el.value === "night" ? "night" : "day";
+}
+
 /* ============================================================
  * 不加班设置
  * ========================================================== */
@@ -463,10 +469,12 @@ function recalcSingle(): void {
   const noOvertimeDates = readNoOvertimeDates();
   const noOvertimeWeekdays = readNoOvertimeWeekdays("single-noot-weekdays");
   const config = readConfig("single");
+  const shiftType = readShiftType("single-shift");
   lastSingle = calcMonthlySalary({
     year,
     month,
     restDayWeekday,
+    shiftType,
     noOvertimeDates,
     noOvertimeWeekdays,
     config,
@@ -482,6 +490,7 @@ function recalcMulti(): void {
   const restDayWeekday = readRestdayWeekdays(months);
   const noOvertimeWeekdays = readNoOvertimeWeekdays("multi-noot-weekdays");
   const config = readConfig("multi");
+  const shiftType = readShiftType("multi-shift");
   lastMulti = calcMultiMonth(
     start.year,
     start.month,
@@ -489,6 +498,7 @@ function recalcMulti(): void {
     end.month,
     config,
     restDayWeekday,
+    shiftType,
     noOvertimeWeekdays,
     [],
   );
@@ -619,6 +629,8 @@ function init(): void {
     "change",
     recalcSingle,
   );
+  // 单月：班次切换
+  getById<HTMLSelectElement>("single-shift").addEventListener("change", recalcSingle);
   // 单月：不加班周几
   document
     .querySelectorAll<HTMLInputElement>("#single-noot-weekdays input")
@@ -632,6 +644,8 @@ function init(): void {
   document
     .querySelectorAll<HTMLInputElement>("#multi-noot-weekdays input")
     .forEach((cb) => cb.addEventListener("change", recalcMulti));
+  // 多月：班次切换
+  getById<HTMLSelectElement>("multi-shift").addEventListener("change", recalcMulti);
 
   // 休息日模式切换
   document

@@ -4,8 +4,9 @@ import type {
   MonthlyInput,
   MonthlyResult,
   MultiMonthSummary,
+  ShiftType,
 } from "../types";
-import { getWorkDaysInMonth, getShiftType } from "./date";
+import { getWorkDaysInMonth } from "./date";
 
 /** 社保参数（固定值） */
 export const SOCIAL_INSURANCE: SocialInsurance = {
@@ -60,7 +61,7 @@ export function calcTax(grossPay: number, socialTotal: number): number {
 
 /** 月度薪资计算 */
 export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
-  const { year, month, restDayWeekday, noOvertimeDates, noOvertimeWeekdays, config } =
+  const { year, month, restDayWeekday, shiftType, noOvertimeDates, noOvertimeWeekdays, config } =
     input;
 
   // a. 当月排班统计（A/B/F 班分类 + 不加班计数）
@@ -68,12 +69,11 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     year,
     month,
     restDayWeekday,
+    shiftType,
     noOvertimeDates,
     noOvertimeWeekdays,
   );
-  // b. 班次类型（奇数月白班 / 偶数月夜班）
-  const shiftType = getShiftType(month);
-  // c. 基础时薪
+  // b. 基础时薪
   const baseHourlyRate = calcBaseHourlyRate(config.baseSalary);
   // d. 固定薪资合计
   const fixedTotal =
@@ -146,6 +146,7 @@ export function calcMultiMonth(
   endMonth: number,
   config: SalaryConfig,
   restDayWeekday: number | number[],
+  shiftType: ShiftType,
   noOvertimeWeekdays: number[],
   noOvertimeDates: number[],
 ): MultiMonthSummary {
@@ -163,6 +164,7 @@ export function calcMultiMonth(
         year: y,
         month: m,
         restDayWeekday: rwd,
+        shiftType,
         noOvertimeDates,
         noOvertimeWeekdays,
         config,

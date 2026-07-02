@@ -1,73 +1,14 @@
 import dayjs from "dayjs";
 import type { ShiftType } from "../types";
-import {
-  isHoliday as rawIsHoliday,
-  getFestival,
-  isAdditionalWorkday,
-} from "chinese-workday";
+import { getLegalHolidays } from "./holidays";
 
 /**
- * 各节日法定核心天数。
- * 库返回的是整个假期档期（含调休周末），这里只取核心法定日。
- */
-const FESTIVAL_CORE_DAYS: Record<string, number> = {
-  "元旦": 1,
-  "春节": 3,
-  "清明节": 1,
-  "劳动节": 1,
-  "端午节": 1,
-  "中秋节": 1,
-  "国庆节": 3,
-};
-
-/**
- * 判断某天是否为法定节假日的核心日（F班，3倍工资）。
- * 排除：调休上班日、普通周末、超过该节日核心天数的连休日。
+ * 判断某天是否为法定节假日（F班，3倍工资）。
+ * 通过农历+节气+公历计算，共13天/年。
  */
 export function isHoliday(date: dayjs.Dayjs): boolean {
-  const d = date.toDate();
-  if (isAdditionalWorkday(d)) return false;  // 调休上班日不算
-  if (!rawIsHoliday(d)) return false;        // 工作日不算
-  const name = getFestival(d);
-  if (name === "周末") return false;          // 普通周末不算
-  // 检查是否在该节日的核心天数内
-  if (!(name in FESTIVAL_CORE_DAYS)) return true; // 未知节日先保留
-  return getFestivalDayIndex(d, name) <= FESTIVAL_CORE_DAYS[name];
-}
-
-/** 返回某天是其所属节日的第几天（从1开始） */
-function getFestivalDayIndex(date: Date, name: string): number {
-  const d = new Date(date);
-  // 往前往后找同节日的连续天数
-  let count = 0;
-  const cur = new Date(d);
-  // 先往前找起始日
-  while (true) {
-    const prev = new Date(cur);
-    prev.setDate(prev.getDate() - 1);
-    if (rawIsHoliday(prev) && getFestival(prev) === name) {
-      cur.setDate(cur.getDate() - 1);
-    } else break;
-  }
-  // 从起始日往后数
-  const start = new Date(cur);
-  while (true) {
-    const check = new Date(start);
-    check.setDate(check.getDate() + count);
-    if (rawIsHoliday(check) && getFestival(check) === name) {
-      count++;
-      if (check.getTime() === d.getTime()) return count;
-    } else break;
-  }
-  return 999; // 不应该到这里
-}
-
-/**
- * 隔月交替：奇数月（1/3/5/7/9/11）白班，偶数月（2/4/6/8/10/12）夜班。
- * 即 7白 8夜 9白 10夜 11白 12夜 1白 2夜 …
- */
-export function getShiftType(month: number): ShiftType {
-  return month % 2 === 1 ? "day" : "night";
+  const holidays = getLegalHolidays(date.year());
+  return holidays.has(date.format("YYYY-MM-DD"));
 }
 
 /**
@@ -121,6 +62,7 @@ export function getWorkDaysInMonth(
   year: number,
   month: number,
   restDayWeekday: number,
+  shiftType: ShiftType,
   noOvertimeDates: number[],
   noOvertimeWeekdays: number[],
 ): {
@@ -186,16 +128,7 @@ export function getWorkDaysInMonth(
       continue;
     }
 
-    // 2) 调休上班的周末 → 算工作日（虽是周末但要出勤）
-    if (isAdditionalWorkday(d.toDate())) {
-      totalDays++;
-      aDayCount++;
-      if (noOvertimeDateSet.has(dom) || noOvertimeWeekdaySet.has(d.day()))
-        noOvertimeCount++;
-      continue;
-    }
-
-    // 3) C 班（休息日，不出勤）：标准 C 或被冲突后移来的 C
+    // 2) C 班（休息日，不出勤）：标准 C 或被冲突后移来的 C
     const isStdC = d.day() === restDayWeekday;
     const isShiftedC = shiftedCDates.has(dom);
     if ((isStdC || isShiftedC) && !shiftedBDates.has(dom)) continue;
@@ -216,7 +149,6 @@ export function getWorkDaysInMonth(
     }
   }
 
-  const shiftType = getShiftType(month);
   const nightShiftDays = shiftType === "night" ? totalDays : 0;
 
   return {

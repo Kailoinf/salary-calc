@@ -37,6 +37,12 @@
                 <option value="6">周六</option>
               </select>
             </label>
+            <label>班次
+              <select id="single-shift">
+                <option value="day">白班</option>
+                <option value="night">夜班</option>
+              </select>
+            </label>
           </div>
         </div>
 
@@ -102,6 +108,14 @@
             <label><input type="radio" name="restday-mode" value="individual"> 每月单独编辑</label>
           </div>
           <div id="multi-restday-inputs"></div>
+          <div class="form-row" style="margin-top:12px">
+            <label>班次（所有月份统一）
+              <select id="multi-shift">
+                <option value="day">白班</option>
+                <option value="night">夜班</option>
+              </select>
+            </label>
+          </div>
           <div class="no-ot-section">
             <h3>不加班周几（勾选 = 该周几的 A 班日不加班，所有月份统一）</h3>
             <div class="checkbox-row" id="multi-noot-weekdays">
