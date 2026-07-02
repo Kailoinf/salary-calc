@@ -8,9 +8,9 @@ importers:
 
   .:
     dependencies:
-      china-holiday:
-        specifier: ^1.0.0
-        version: 1.0.0
+      chinese-workday:
+        specifier: ^2.0.0
+        version: 2.0.0
       dayjs:
         specifier: ^1.11.21
         version: 1.11.21
@@ -146,8 +146,8 @@ packages:
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
 
-  china-holiday@1.0.0:
-    resolution: {integrity: sha512-Zvmb7BO41D7XQgrOHQI1PaYlc5/mRZBeefRF2zqkooIA07AMJRYkp6HnW2dx7CjmasW3Bbrol2bklDfk1DRwGg==}
+  chinese-workday@2.0.0:
+    resolution: {integrity: sha512-K2i+1fmZrb7xdjjbQg6AUIlKuav2NwLWVWLvdTJqbbGBfkn63UuKqq//Z6vclqrmoy8wfhaAZ50sjGEFD9CRjg==}
 
   dayjs@1.11.21:
     resolution: {integrity: sha512-98IT+HOahAisibz/yjKbzuOBwYcjJ7BCLPzARyHiyEBmRz4fatF+KPJszEHXsGYjUG234aH/cOjW1wwTbKUZlA==}
@@ -410,7 +410,7 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  china-holiday@1.0.0: {}
+  chinese-workday@2.0.0: {}
 
   dayjs@1.11.21: {}
 
