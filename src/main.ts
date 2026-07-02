@@ -1,4 +1,4 @@
-import type { SalaryConfig, MonthlyResult, MultiMonthSummary } from "./types";
+import type { SalaryConfig, MonthlyResult, MultiMonthSummary, ShiftType } from "./types";
 import { calcMonthlySalary, calcMultiMonth } from "./utils/salary";
 import { getADayDates } from "./utils/date";
 import { z } from "zod";
@@ -346,6 +346,7 @@ function renderSingleResult(r: MonthlyResult): void {
       <div class="stat"><span class="stat-label">F班(节假日)</span><span class="stat-val">${r.fDayCount}</span></div>
       <div class="stat"><span class="stat-label">休息</span><span class="stat-val">${WEEKDAY_NAMES[r.restDayWeekday]}</span></div>
       <div class="stat"><span class="stat-label">不加班</span><span class="stat-val">${r.noOvertimeCount}</span></div>
+      <div class="stat"><span class="stat-label">白班</span><span class="stat-val">${r.totalWorkDays - r.nightShiftDays}</span></div>
       <div class="stat"><span class="stat-label">夜班</span><span class="stat-val">${r.nightShiftDays}</span></div>
       <div class="stat"><span class="stat-label">班次</span><span class="stat-val">${SHIFT_LABEL(r)}</span></div>
     </div>
@@ -470,11 +471,14 @@ function recalcSingle(): void {
   const noOvertimeWeekdays = readNoOvertimeWeekdays("single-noot-weekdays");
   const config = readConfig("single");
   const shiftType = readShiftType("single-shift");
+  // 上月班次 = 当月相反（第一个休息日之前沿用）
+  const prevShiftType: ShiftType = shiftType === "night" ? "day" : "night";
   lastSingle = calcMonthlySalary({
     year,
     month,
     restDayWeekday,
     shiftType,
+    prevShiftType,
     noOvertimeDates,
     noOvertimeWeekdays,
     config,

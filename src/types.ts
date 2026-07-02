@@ -25,7 +25,8 @@ export interface MonthlyInput {
   year: number;
   month: number; // 1-12
   restDayWeekday: number; // C 班（休息日）周几，0=周日~6=周六，默认 3（周三）
-  shiftType: ShiftType;     // 白班 day / 夜班 night
+  shiftType: ShiftType;     // 当月班次（第一个休息日之后生效）
+  prevShiftType: ShiftType; // 上月班次（第一个休息日之前沿用）
   noOvertimeDates: number[]; // 当月 A 班日中"不加班"的日期（几号）集合
   noOvertimeWeekdays: number[]; // "不加班"的周几集合（0~6），命中即该 A 班日不计加班
   config: SalaryConfig;

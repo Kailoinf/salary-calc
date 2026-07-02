@@ -61,52 +61,54 @@ export function calcTax(grossPay: number, socialTotal: number): number {
 
 /** 月度薪资计算 */
 export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
-  const { year, month, restDayWeekday, shiftType, noOvertimeDates, noOvertimeWeekdays, config } =
+  const { year, month, restDayWeekday, shiftType, prevShiftType, noOvertimeDates, noOvertimeWeekdays, config } =
     input;
 
-  // a. 当月排班统计（A/B/F 班分类 + 不加班计数）
+  // a. 当月排班统计（A/B/F 班分类 + 逐日白/夜班 + 不加班计数）
   const stats = getWorkDaysInMonth(
     year,
     month,
     restDayWeekday,
+    prevShiftType,
     shiftType,
     noOvertimeDates,
     noOvertimeWeekdays,
   );
+
   // b. 基础时薪
   const baseHourlyRate = calcBaseHourlyRate(config.baseSalary);
-  // d. 固定薪资合计
+
+  // c. 固定薪资合计
   const fixedTotal =
     config.baseSalary +
     config.positionPay +
     config.fullAttendanceBonus +
     config.performancePay;
 
-  // e. A 班加班费：加班 3h × 1.5 倍（不加班的 A 班日不计）
+  // d. A 班加班费：加班 3h × 1.5 倍（不加班的 A 班日不计）
   const weekdayOvertime = round2(
     (stats.aDayCount - stats.noOvertimeCount) * 3 * 1.5 * baseHourlyRate,
   );
 
-  // f. B 班双倍加班费（全天 11h × 2 倍）
+  // e. B 班双倍加班费（全天 11h × 2 倍）
   const tuesdayDoublePay = round2(stats.bDayCount * 11 * 2 * baseHourlyRate);
 
-  // g. F 班节假日（全天 11h × 3 倍）
+  // f. F 班节假日（全天 11h × 3 倍）
   const holidayExtra = round2(stats.fDayCount * 11 * 3 * baseHourlyRate);
 
-  // h. 夜班补贴（夜班月：20 × 总工作日数；白班月：0）
-  const nightSubsidy =
-    shiftType === "night" ? round2(20 * stats.totalDays) : 0;
+  // g. 夜班补贴：逐日判定，20元/夜班出勤日
+  const nightSubsidy = round2(20 * stats.nightShiftDays);
 
-  // i. 税前总工资
+  // h. 税前总工资
   const grossPay = round2(
     fixedTotal + weekdayOvertime + tuesdayDoublePay + holidayExtra + nightSubsidy,
   );
 
-  // j. 社保
+  // i. 社保
   const socialInsurance = calcSocialInsurance();
-  // k. 个税
+  // j. 个税
   const tax = calcTax(grossPay, socialInsurance.total);
-  // l. 到手工资
+  // k. 到手工资
   const netPay = round2(grossPay - socialInsurance.total - tax);
 
   return {
@@ -137,7 +139,8 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
 /**
  * 多月汇总计算。
  * restDayWeekday 传单值表示所有月份统一；传数组则按月份顺序逐月取值。
- * noOvertimeWeekdays / noOvertimeDates 对所有月份统一生效。
+ * shiftType 传单值时每月自动翻转（白→夜→白→夜…）；
+ * 传数组时按顺序取，prevShiftType 由上一月推断。
  */
 export function calcMultiMonth(
   startYear: number,
@@ -146,7 +149,7 @@ export function calcMultiMonth(
   endMonth: number,
   config: SalaryConfig,
   restDayWeekday: number | number[],
-  shiftType: ShiftType,
+  shiftType: ShiftType | ShiftType[],
   noOvertimeWeekdays: number[],
   noOvertimeDates: number[],
 ): MultiMonthSummary {
@@ -155,21 +158,41 @@ export function calcMultiMonth(
   let y = startYear;
   let m = startMonth;
   let index = 0;
+
+  // 第一个月的前月班次：与当月相反
+  const firstShift = Array.isArray(shiftType) ? shiftType[0] : shiftType;
+  let prevShift: ShiftType = firstShift === "night" ? "day" : "night";
+  // 单值时自动每月翻转（白→夜→白→夜…）；数组时取对应索引
+  let autoFlip: ShiftType | null = Array.isArray(shiftType) ? null : firstShift;
+
   while (y < endYear || (y === endYear && m <= endMonth)) {
     const rwd = Array.isArray(restDayWeekday)
       ? restDayWeekday[index]
       : restDayWeekday;
+
+    const currShift: ShiftType = Array.isArray(shiftType)
+      ? shiftType[index]
+      : autoFlip!;
+
+    // 单值时：每次迭代翻转
+    if (autoFlip !== null) {
+      autoFlip = autoFlip === "night" ? "day" : "night";
+    }
+
     results.push(
       calcMonthlySalary({
         year: y,
         month: m,
         restDayWeekday: rwd,
-        shiftType,
+        shiftType: currShift,
+        prevShiftType: prevShift,
         noOvertimeDates,
         noOvertimeWeekdays,
         config,
       }),
     );
+
+    prevShift = currShift;
     m++;
     if (m > 12) {
       m = 1;
