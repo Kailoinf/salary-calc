@@ -7,14 +7,59 @@ import {
 } from "chinese-workday";
 
 /**
- * 判断某天是否为法定节假日（F班，3倍工资）。
- * 排除：调休上班日、普通周末。仅保留真正的法定节假日。
+ * 各节日法定核心天数。
+ * 库返回的是整个假期档期（含调休周末），这里只取核心法定日。
+ */
+const FESTIVAL_CORE_DAYS: Record<string, number> = {
+  "元旦": 1,
+  "春节": 3,
+  "清明节": 1,
+  "劳动节": 1,
+  "端午节": 1,
+  "中秋节": 1,
+  "国庆节": 3,
+};
+
+/**
+ * 判断某天是否为法定节假日的核心日（F班，3倍工资）。
+ * 排除：调休上班日、普通周末、超过该节日核心天数的连休日。
  */
 export function isHoliday(date: dayjs.Dayjs): boolean {
   const d = date.toDate();
   if (isAdditionalWorkday(d)) return false;  // 调休上班日不算
   if (!rawIsHoliday(d)) return false;        // 工作日不算
-  return getFestival(d) !== "周末";           // 普通周末不算，只留法定节假日
+  const name = getFestival(d);
+  if (name === "周末") return false;          // 普通周末不算
+  // 检查是否在该节日的核心天数内
+  if (!(name in FESTIVAL_CORE_DAYS)) return true; // 未知节日先保留
+  return getFestivalDayIndex(d, name) <= FESTIVAL_CORE_DAYS[name];
+}
+
+/** 返回某天是其所属节日的第几天（从1开始） */
+function getFestivalDayIndex(date: Date, name: string): number {
+  const d = new Date(date);
+  // 往前往后找同节日的连续天数
+  let count = 0;
+  const cur = new Date(d);
+  // 先往前找起始日
+  while (true) {
+    const prev = new Date(cur);
+    prev.setDate(prev.getDate() - 1);
+    if (rawIsHoliday(prev) && getFestival(prev) === name) {
+      cur.setDate(cur.getDate() - 1);
+    } else break;
+  }
+  // 从起始日往后数
+  const start = new Date(cur);
+  while (true) {
+    const check = new Date(start);
+    check.setDate(check.getDate() + count);
+    if (rawIsHoliday(check) && getFestival(check) === name) {
+      count++;
+      if (check.getTime() === d.getTime()) return count;
+    } else break;
+  }
+  return 999; // 不应该到这里
 }
 
 /**
