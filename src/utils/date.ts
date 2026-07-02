@@ -40,6 +40,26 @@ export function getFirstRestDay(
 }
 
 /**
+ * 返回当月所有 B 班日（C班前一天，排除F班），供 UI 渲染 B班8h 勾选列表。
+ */
+export function getBDayDates(
+  year: number,
+  month: number,
+  restDayWeekday: number,
+): dayjs.Dayjs[] {
+  const start = dayjs(new Date(year, month - 1, 1));
+  const daysInMonth = start.daysInMonth();
+  const out: dayjs.Dayjs[] = [];
+  for (let i = 0; i < daysInMonth; i++) {
+    const d = start.add(i, "day");
+    if ((d.day() + 1) % 7 !== restDayWeekday) continue; // 不是 B 班
+    if (isHoliday(d)) continue; // F 班不算 B 班
+    out.push(d);
+  }
+  return out;
+}
+
+/**
  * 返回当月所有 A 班日（排除 C/B/F 班），供 UI 渲染不加班勾选列表。
  */
 export function getADayDates(

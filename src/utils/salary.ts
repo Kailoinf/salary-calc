@@ -5,7 +5,6 @@ import type {
   MonthlyResult,
   MultiMonthSummary,
   ShiftType,
-  BDayHours,
 } from "../types";
 import { getWorkDaysInMonth } from "./date";
 
@@ -62,7 +61,7 @@ export function calcTax(grossPay: number, socialTotal: number): number {
 
 /** 月度薪资计算 */
 export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
-  const { year, month, restDayWeekday, shiftType, prevShiftType, bDayHours, noOvertimeDates, noOvertimeWeekdays, config } =
+  const { year, month, restDayWeekday, shiftType, prevShiftType, bDay8hDates, noOvertimeDates, noOvertimeWeekdays, config } =
     input;
 
   // a. 当月排班统计（A/B/F 班分类 + 逐日白/夜班 + 不加班计数）
@@ -91,8 +90,13 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     (stats.aDayCount - stats.noOvertimeCount) * 3 * 1.5 * baseHourlyRate,
   );
 
-  // e. B 班双倍加班费（bDayHours × 2 倍）
-  const tuesdayDoublePay = round2(stats.bDayCount * bDayHours * 2 * baseHourlyRate);
+  // e. B 班双倍加班费：默认11h×2，勾选8h的B班日按8h×2
+  const bDay8hSet = new Set(bDay8hDates);
+  const bDay8hCount = bDay8hDates.length;
+  const tuesdayDoublePay = round2(
+    (stats.bDayCount - bDay8hCount) * 11 * 2 * baseHourlyRate +
+    bDay8hCount * 8 * 2 * baseHourlyRate,
+  );
 
   // f. F 班节假日（全天 11h × 3 倍）
   const holidayExtra = round2(stats.fDayCount * 11 * 3 * baseHourlyRate);
@@ -133,7 +137,7 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     tax,
     netPay,
     shiftType,
-    bDayHours,
+    bDay8hCount,
     baseHourlyRate: round2(baseHourlyRate),
   };
 }
@@ -152,7 +156,7 @@ export function calcMultiMonth(
   config: SalaryConfig,
   restDayWeekday: number | number[],
   shiftType: ShiftType | ShiftType[],
-  bDayHours: BDayHours,
+  bDay8hDates: number[],
   noOvertimeWeekdays: number[],
   noOvertimeDates: number[],
 ): MultiMonthSummary {
@@ -189,7 +193,7 @@ export function calcMultiMonth(
         restDayWeekday: rwd,
         shiftType: currShift,
         prevShiftType: prevShift,
-        bDayHours,
+        bDay8hDates,
         noOvertimeDates,
         noOvertimeWeekdays,
         config,
