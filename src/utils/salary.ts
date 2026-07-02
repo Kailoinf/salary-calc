@@ -5,13 +5,7 @@ import type {
   MonthlyResult,
   MultiMonthSummary,
 } from "../types";
-import dayjs from "dayjs";
-import {
-  getWorkDaysInMonth,
-  getShiftType,
-  getWeekdayType,
-  isRestDay,
-} from "./date";
+import { getWorkDaysInMonth, getShiftType } from "./date";
 
 /** 社保参数（固定值） */
 export const SOCIAL_INSURANCE: SocialInsurance = {
@@ -64,37 +58,19 @@ export function calcTax(grossPay: number, socialTotal: number): number {
   return round2(taxable * TAX_RATE);
 }
 
-/**
- * 统计当月出勤的周一 / 周四 / 周五天数（跳过休息日）。
- * 这三天每天额外加班 3h，按 1.5 倍时薪计算。
- */
-function countWeekdayOvertimeDays(
-  year: number,
-  month: number,
-  firstRestDay: number,
-): { monCount: number; thuCount: number; friCount: number } {
-  const start = dayjs(new Date(year, month - 1, 1));
-  const daysInMonth = start.daysInMonth();
-  let monCount = 0;
-  let thuCount = 0;
-  let friCount = 0;
-  for (let i = 0; i < daysInMonth; i++) {
-    const d = start.add(i, "day");
-    if (isRestDay(d, firstRestDay)) continue;
-    const wd = getWeekdayType(d);
-    if (wd === "mon") monCount++;
-    else if (wd === "thu") thuCount++;
-    else if (wd === "fri") friCount++;
-  }
-  return { monCount, thuCount, friCount };
-}
-
 /** 月度薪资计算 */
 export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
-  const { year, month, firstRestDay, config } = input;
+  const { year, month, restDayWeekday, noOvertimeDates, noOvertimeWeekdays, config } =
+    input;
 
-  // a. 当月排班统计
-  const stats = getWorkDaysInMonth(year, month, firstRestDay);
+  // a. 当月排班统计（A/B/F 班分类 + 不加班计数）
+  const stats = getWorkDaysInMonth(
+    year,
+    month,
+    restDayWeekday,
+    noOvertimeDates,
+    noOvertimeWeekdays,
+  );
   // b. 班次类型（奇数月白班 / 偶数月夜班）
   const shiftType = getShiftType(month);
   // c. 基础时薪
@@ -106,47 +82,43 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     config.fullAttendanceBonus +
     config.performancePay;
 
-  // e. 工作日加班费（周一/四/五 × 3h × 1.5 倍）
-  const { monCount, thuCount, friCount } = countWeekdayOvertimeDays(
-    year,
-    month,
-    firstRestDay,
-  );
+  // e. A 班加班费：加班 3h × 1.5 倍（不加班的 A 班日不计）
   const weekdayOvertime = round2(
-    (monCount + thuCount + friCount) * 3 * 1.5 * baseHourlyRate,
+    (stats.aDayCount - stats.noOvertimeCount) * 3 * 1.5 * baseHourlyRate,
   );
 
-  // f. 周二双倍加班费（周二天数 × 11h × 2 倍）
-  const tuesdayDoublePay = round2(
-    stats.tuesdayCount * 11 * 2 * baseHourlyRate,
-  );
+  // f. B 班双倍加班费（全天 11h × 2 倍）
+  const tuesdayDoublePay = round2(stats.bDayCount * 11 * 2 * baseHourlyRate);
 
-  // 节假日补差（法定节假日天数 × 11h × (3-1) 倍 = × 11h × 2 倍）
-  const holidayCount = stats.holidayDays.length;
-  const holidayExtra = round2(holidayCount * 11 * 2 * baseHourlyRate);
+  // g. F 班补差（法定节假日全天 11h × 2 倍，底薪已覆盖 1 倍）
+  const holidayExtra = round2(stats.fDayCount * 11 * 2 * baseHourlyRate);
 
-  // g. 夜班补贴（夜班月：20 × 总工作日数；白班月：0）
+  // h. 夜班补贴（夜班月：20 × 总工作日数；白班月：0）
   const nightSubsidy =
     shiftType === "night" ? round2(20 * stats.totalDays) : 0;
 
-  // h. 税前总工资
+  // i. 税前总工资
   const grossPay = round2(
     fixedTotal + weekdayOvertime + tuesdayDoublePay + holidayExtra + nightSubsidy,
   );
 
-  // i. 社保
+  // j. 社保
   const socialInsurance = calcSocialInsurance();
-  // j. 个税
+  // k. 个税
   const tax = calcTax(grossPay, socialInsurance.total);
-  // k. 到手工资
+  // l. 到手工资
   const netPay = round2(grossPay - socialInsurance.total - tax);
 
   return {
     year,
     month,
     totalWorkDays: stats.totalDays,
-    tuesdayDoubleDays: stats.tuesdayCount,
-    holidayDays: holidayCount,
+    aDayCount: stats.aDayCount,
+    bDayCount: stats.bDayCount,
+    fDayCount: stats.fDayCount,
+    restDayWeekday,
+    noOvertimeCount: stats.noOvertimeCount,
+    holidayDays: stats.holidayDays.length,
     nightShiftDays: stats.nightShiftDays,
     fixedTotal: round2(fixedTotal),
     weekdayOvertime,
@@ -164,7 +136,8 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
 
 /**
  * 多月汇总计算。
- * restDays 传单个数字表示所有月份统一；传数组则按月份顺序逐月取值。
+ * restDayWeekday 传单值表示所有月份统一；传数组则按月份顺序逐月取值。
+ * noOvertimeWeekdays / noOvertimeDates 对所有月份统一生效。
  */
 export function calcMultiMonth(
   startYear: number,
@@ -172,7 +145,9 @@ export function calcMultiMonth(
   endYear: number,
   endMonth: number,
   config: SalaryConfig,
-  restDays: number[] | number,
+  restDayWeekday: number | number[],
+  noOvertimeWeekdays: number[],
+  noOvertimeDates: number[],
 ): MultiMonthSummary {
   const results: MonthlyResult[] = [];
 
@@ -180,9 +155,18 @@ export function calcMultiMonth(
   let m = startMonth;
   let index = 0;
   while (y < endYear || (y === endYear && m <= endMonth)) {
-    const firstRestDay = Array.isArray(restDays) ? restDays[index] : restDays;
+    const rwd = Array.isArray(restDayWeekday)
+      ? restDayWeekday[index]
+      : restDayWeekday;
     results.push(
-      calcMonthlySalary({ year: y, month: m, firstRestDay, config }),
+      calcMonthlySalary({
+        year: y,
+        month: m,
+        restDayWeekday: rwd,
+        noOvertimeDates,
+        noOvertimeWeekdays,
+        config,
+      }),
     );
     m++;
     if (m > 12) {

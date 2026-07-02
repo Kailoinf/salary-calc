@@ -1,13 +1,10 @@
 import dayjs from "dayjs";
-import isoWeek from "dayjs/plugin/isoWeek";
 import type { ShiftType } from "../types";
 import {
   isHoliday as chinaIsHoliday,
   getFestival,
   isAddtionalWorkday,
 } from "china-holiday";
-
-dayjs.extend(isoWeek);
 
 // `china-holiday` 实际以 CommonJS 导出：
 //   module.exports = { isWorkday, isHoliday, getFestival, isAddtionalWorkday }
@@ -38,26 +35,6 @@ export function isHoliday(date: dayjs.Dayjs): boolean {
   return getFestival(d) !== "周末";
 }
 
-/** 返回该月所有法定节假日（真正放假）的日期数组 */
-export function getHolidaysInMonth(year: number, month: number): dayjs.Dayjs[] {
-  const start = dayjs(new Date(year, month - 1, 1));
-  const daysInMonth = start.daysInMonth();
-  const holidays: dayjs.Dayjs[] = [];
-  for (let i = 0; i < daysInMonth; i++) {
-    const d = start.add(i, "day");
-    if (isHoliday(d)) holidays.push(d);
-  }
-  return holidays;
-}
-
-/** 返回日期是周几 */
-export function getWeekdayType(
-  date: dayjs.Dayjs,
-): "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun" {
-  const names = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
-  return names[date.day()];
-}
-
 /**
  * 隔月交替：奇数月（1/3/5/7/9/11）白班，偶数月（2/4/6/8/10/12）夜班。
  * 即 7白 8夜 9白 10夜 11白 12夜 1白 2夜 …
@@ -66,60 +43,98 @@ export function getShiftType(month: number): ShiftType {
   return month % 2 === 1 ? "day" : "night";
 }
 
-/** 根据用户输入的“几号”返回当月第一个休息日的 dayjs 对象 */
-export function getFirstRestDate(
-  year: number,
-  month: number,
-  firstRestDay: number,
-): dayjs.Dayjs {
-  return dayjs(new Date(year, month - 1, firstRestDay));
-}
-
 /**
- * 判断某天是否是休息日。
- * 排班规则：从“当月第一个休息日”起，每隔 7 天休息一天（固定每周三休息）。
- * 第一个休息日之前的日期不算休息日。
+ * 判断某天是否为 C 班（休息日）。
+ * 排班规则：每周固定的某一天休息（由 restDayWeekday 指定，0=周日~6=周六）。
  */
-export function isRestDay(date: dayjs.Dayjs, firstRestDayOfMonth: number): boolean {
-  const dayOfMonth = date.date();
-  if (dayOfMonth < firstRestDayOfMonth) return false;
-  return (dayOfMonth - firstRestDayOfMonth) % 7 === 0;
+export function isRestDay(date: dayjs.Dayjs, restDayWeekday: number): boolean {
+  return date.day() === restDayWeekday;
 }
 
 /**
- * 核心函数：遍历当月每一天，跳过休息日，统计：
- *   - 总工作日
- *   - 周二天数（双倍出勤）
- *   - 法定节假日天数（且为出勤，即非休息日）
- *   - 夜班出勤天数（夜班月 = 总工作日，白班月 = 0）
+ * 判断某天是否为 B 班（C 班前一天）。
+ * 即“次日”是休息日：当 (date.day()+1)%7 === restDayWeekday 时返回 true。
+ * 例：C=3(周三) → B=2(周二)；C=1(周一) → B=0(周日)。
+ */
+export function isBDay(date: dayjs.Dayjs, restDayWeekday: number): boolean {
+  return (date.day() + 1) % 7 === restDayWeekday;
+}
+
+/**
+ * 核心函数：遍历当月每一天，按班型分类统计出勤。
+ *   - C 班（休息日）：跳过，不出勤；
+ *   - F 班（法定节假日 isHoliday）：fDayCount；
+ *   - B 班（C 班前一天）：bDayCount；
+ *   - 其余：A 班 → aDayCount。
+ * A 班日若命中“不加班”集合（日期或周几）则计入 noOvertimeCount。
+ * 夜班出勤天数 = 夜班月的总出勤天数，白班月为 0。
  */
 export function getWorkDaysInMonth(
   year: number,
   month: number,
-  firstRestDay: number,
+  restDayWeekday: number,
+  noOvertimeDates: number[],
+  noOvertimeWeekdays: number[],
 ): {
   totalDays: number;
-  tuesdayCount: number;
+  aDayCount: number;
+  bDayCount: number;
+  fDayCount: number;
   holidayDays: dayjs.Dayjs[];
   nightShiftDays: number;
+  noOvertimeCount: number;
 } {
   const start = dayjs(new Date(year, month - 1, 1));
   const daysInMonth = start.daysInMonth();
 
   let totalDays = 0;
-  let tuesdayCount = 0;
+  let aDayCount = 0;
+  let bDayCount = 0;
+  let fDayCount = 0;
+  let noOvertimeCount = 0;
   const holidayDays: dayjs.Dayjs[] = [];
+
+  // 转 Set 加速查找
+  const noOvertimeDateSet = new Set(noOvertimeDates);
+  const noOvertimeWeekdaySet = new Set(noOvertimeWeekdays);
 
   for (let i = 0; i < daysInMonth; i++) {
     const d = start.add(i, "day");
-    if (isRestDay(d, firstRestDay)) continue; // 休息日不出勤
+
+    // C 班：休息日不出勤
+    if (isRestDay(d, restDayWeekday)) continue;
     totalDays++;
-    if (getWeekdayType(d) === "tue") tuesdayCount++;
-    if (isHoliday(d)) holidayDays.push(d); // 法定节假日且出勤
+
+    if (isHoliday(d)) {
+      // F 班：法定节假日
+      fDayCount++;
+      holidayDays.push(d);
+    } else if (isBDay(d, restDayWeekday)) {
+      // B 班：C 班前一天
+      bDayCount++;
+    } else {
+      // A 班：普通工作日
+      aDayCount++;
+      // 不加班判断：日期命中 或 周几命中（取并集，仅影响 A 班日）
+      if (
+        noOvertimeDateSet.has(d.date()) ||
+        noOvertimeWeekdaySet.has(d.day())
+      ) {
+        noOvertimeCount++;
+      }
+    }
   }
 
   const shiftType = getShiftType(month);
   const nightShiftDays = shiftType === "night" ? totalDays : 0;
 
-  return { totalDays, tuesdayCount, holidayDays, nightShiftDays };
+  return {
+    totalDays,
+    aDayCount,
+    bDayCount,
+    fDayCount,
+    holidayDays,
+    nightShiftDays,
+    noOvertimeCount,
+  };
 }

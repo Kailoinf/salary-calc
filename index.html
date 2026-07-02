@@ -26,8 +26,35 @@
           <div class="form-row">
             <label>年份 <input type="number" id="single-year" value="2026" min="2020" max="2030"></label>
             <label>月份 <input type="number" id="single-month" value="7" min="1" max="12"></label>
-            <label>当月第一个休息日(几号) <input type="number" id="single-restday" value="2" min="1" max="31"></label>
+            <label>C班(休息日)周几
+              <select id="single-restday-weekday">
+                <option value="0">周日</option>
+                <option value="1">周一</option>
+                <option value="2">周二</option>
+                <option value="3" selected>周三</option>
+                <option value="4">周四</option>
+                <option value="5">周五</option>
+                <option value="6">周六</option>
+              </select>
+            </label>
           </div>
+        </div>
+
+        <div class="card no-ot-section">
+          <h2>🚫 不加班设置</h2>
+          <p class="hint">仅影响 A 班日（不加班 = 当日仅 8h，不计 3h 加班）。以下两种方式取并集。</p>
+          <h3>按周几（勾选 = 该周几的 A 班日不加班）</h3>
+          <div class="checkbox-row" id="single-noot-weekdays">
+            <label><input type="checkbox" value="0"> 周日</label>
+            <label><input type="checkbox" value="1"> 周一</label>
+            <label><input type="checkbox" value="2"> 周二</label>
+            <label><input type="checkbox" value="3"> 周三</label>
+            <label><input type="checkbox" value="4"> 周四</label>
+            <label><input type="checkbox" value="5"> 周五</label>
+            <label><input type="checkbox" value="6"> 周六</label>
+          </div>
+          <h3>按日期（默认全勾=加班，取消勾=不加班）</h3>
+          <div id="single-noot-dates"></div>
         </div>
 
         <div class="card">
@@ -69,12 +96,25 @@
         </div>
 
         <div class="card">
-          <h2>🔄 休息日配置</h2>
+          <h2>🔄 排班配置</h2>
           <div class="restday-mode">
             <label><input type="radio" name="restday-mode" value="uniform" checked> 所有月份统一</label>
             <label><input type="radio" name="restday-mode" value="individual"> 每月单独编辑</label>
           </div>
           <div id="multi-restday-inputs"></div>
+          <div class="no-ot-section">
+            <h3>不加班周几（勾选 = 该周几的 A 班日不加班，所有月份统一）</h3>
+            <div class="checkbox-row" id="multi-noot-weekdays">
+              <label><input type="checkbox" value="0"> 周日</label>
+              <label><input type="checkbox" value="1"> 周一</label>
+              <label><input type="checkbox" value="2"> 周二</label>
+              <label><input type="checkbox" value="3"> 周三</label>
+              <label><input type="checkbox" value="4"> 周四</label>
+              <label><input type="checkbox" value="5"> 周五</label>
+              <label><input type="checkbox" value="6"> 周六</label>
+            </div>
+            <p class="hint">多月模式不支持按日期不加班（按日期仅在单月模块可用）。</p>
+          </div>
         </div>
 
         <div class="card">

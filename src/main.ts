@@ -1,6 +1,23 @@
 import type { SalaryConfig, MonthlyResult, MultiMonthSummary } from "./types";
 import { calcMonthlySalary, calcMultiMonth } from "./utils/salary";
+import { isRestDay, isBDay, isHoliday } from "./utils/date";
+import dayjs from "dayjs";
 import { z } from "zod";
+
+/* ============================================================
+ * 常量
+ * ========================================================== */
+
+/** 周几名称：0=周日 ~ 6=周六 */
+const WEEKDAY_NAMES = [
+  "周日",
+  "周一",
+  "周二",
+  "周三",
+  "周四",
+  "周五",
+  "周六",
+] as const;
 
 /* ============================================================
  * 通用工具
@@ -42,11 +59,6 @@ const yearSchema = z
   .min(2020, "年份需在 2020-2030")
   .max(2030, "年份需在 2020-2030");
 const monthSchema = z.number().int().min(1, "月份 1-12").max(12, "月份 1-12");
-const restdaySchema = z
-  .number()
-  .int()
-  .min(1, "休息日 1-31")
-  .max(31, "休息日 1-31");
 const salarySchema = z.number().min(0, "不能小于 0");
 
 /** 校验单个 number 输入；失败时显示错误并以 fallback 回退（不阻断计算） */
@@ -120,20 +132,20 @@ function readConfig(prefix: "single" | "multi"): SalaryConfig {
 }
 
 /* ============================================================
- * 多月休息日管理（统一 / 单独 两种模式）
+ * 多月 C 班周几管理（统一 / 单独 两种模式）
  * ========================================================== */
 
 type RestdayMode = "uniform" | "individual";
 let restdayMode: RestdayMode = "uniform";
 
-/** key: "year-month"，value: 当月第一个休息日；单独模式下持久化用户输入 */
+/** key: "year-month"，value: 当月 C 班周几；单独模式下持久化用户输入 */
 const restdayMap = new Map<string, number>();
 
 function restKey(y: number, m: number): string {
   return `${y}-${m}`;
 }
 function getRestdayFor(y: number, m: number): number {
-  return restdayMap.get(restKey(y, m)) ?? 2;
+  return restdayMap.get(restKey(y, m)) ?? 3; // 默认周三
 }
 function setRestdayFor(y: number, m: number, v: number): void {
   restdayMap.set(restKey(y, m), v);
@@ -162,11 +174,18 @@ function enumerateMonths(start: YearMonth, end: YearMonth): YearMonth[] {
   return out;
 }
 
+/** 生成周几下拉选项 HTML，selected 指定默认选中值（0~6） */
+function weekdayOptions(selected: number): string {
+  return WEEKDAY_NAMES.map(
+    (n, i) => `<option value="${i}"${i === selected ? " selected" : ""}>${n}</option>`,
+  ).join("");
+}
+
 /**
- * 根据当前模式与月份集合渲染休息日输入区。
- * 仅在结构（模式 + 月份集合）发生变化时才重建 DOM，避免输入时失焦。
+ * 根据当前模式与月份集合渲染 C 班周几输入区。
+ * 仅在结构（模式 + 月份集合）发生变化时才重建 DOM，避免切换失焦。
  */
-function ensureRestdayInputs(months: YearMonth[]): void {
+function ensureRestdayWeekdayInputs(months: YearMonth[]): void {
   const container = getById("multi-restday-inputs");
   const sig =
     restdayMode + "|" + months.map((mm) => restKey(mm.year, mm.month)).join(",");
@@ -174,38 +193,38 @@ function ensureRestdayInputs(months: YearMonth[]): void {
   container.dataset.sig = sig;
 
   if (restdayMode === "uniform") {
-    // 切换/重渲染时尽量保留用户已输入的统一值
+    // 切换/重渲染时尽量保留用户已选择的统一值
     const existing = document.getElementById(
       "multi-restday-uniform",
-    ) as HTMLInputElement | null;
+    ) as HTMLSelectElement | null;
     const prev =
       existing && existing.value !== ""
-        ? existing.value
-        : String(
-            months.length > 0 ? getRestdayFor(months[0].year, months[0].month) : 2,
-          );
-    container.innerHTML = `<div class="form-row"><label>当月第一个休息日(几号) <input type="number" id="multi-restday-uniform" value="${prev}" min="1" max="31"></label></div>`;
-    getById<HTMLInputElement>("multi-restday-uniform").addEventListener(
-      "input",
+        ? Number(existing.value)
+        : months.length > 0
+          ? getRestdayFor(months[0].year, months[0].month)
+          : 3;
+    container.innerHTML = `<div class="form-row"><label>C班(休息日)周几 <select id="multi-restday-uniform">${weekdayOptions(Number.isFinite(prev) ? prev : 3)}</select></label></div>`;
+    getById<HTMLSelectElement>("multi-restday-uniform").addEventListener(
+      "change",
       recalcMulti,
     );
   } else {
     const items = months
       .map(
         (mm, i) =>
-          `<label>${mm.year}年${mm.month}月 <input type="number" class="restday-individual" data-rest-idx="${i}" data-rest-key="${restKey(mm.year, mm.month)}" value="${getRestdayFor(mm.year, mm.month)}" min="1" max="31"></label>`,
+          `<label>${mm.year}年${mm.month}月 <select class="restday-individual" data-rest-idx="${i}" data-rest-key="${restKey(mm.year, mm.month)}">${weekdayOptions(getRestdayFor(mm.year, mm.month))}</select></label>`,
       )
       .join("");
     container.innerHTML = `<div class="individual-restday">${items}</div>`;
     container
-      .querySelectorAll<HTMLInputElement>(".restday-individual")
-      .forEach((inp) => {
-        inp.addEventListener("input", () => {
-          const key = inp.dataset.restKey ?? "";
+      .querySelectorAll<HTMLSelectElement>(".restday-individual")
+      .forEach((sel) => {
+        sel.addEventListener("change", () => {
+          const key = sel.dataset.restKey ?? "";
           const parts = key.split("-");
           const ry = Number(parts[0]);
           const rm = Number(parts[1]);
-          const val = Number(inp.value);
+          const val = Number(sel.value);
           if (Number.isFinite(val)) setRestdayFor(ry, rm, val);
           recalcMulti();
         });
@@ -213,16 +232,116 @@ function ensureRestdayInputs(months: YearMonth[]): void {
   }
 }
 
-/** 读取当前休息日配置：统一模式返回单值，单独模式返回数组 */
-function readRestDays(months: YearMonth[]): number[] | number {
+/** 读取 C 班周几配置：统一模式返回单值，单独模式返回数组 */
+function readRestdayWeekdays(months: YearMonth[]): number | number[] {
   if (restdayMode === "uniform") {
     const el = document.getElementById(
       "multi-restday-uniform",
-    ) as HTMLInputElement | null;
+    ) as HTMLSelectElement | null;
     const v = el ? Number(el.value) : NaN;
-    return Number.isFinite(v) && v > 0 ? Math.round(v) : 2;
+    return Number.isFinite(v) ? Math.round(v) : 3;
   }
   return months.map((mm) => getRestdayFor(mm.year, mm.month));
+}
+
+/** 读取单月 C 班周几 select 的值 */
+function readRestDayWeekday(id: string): number {
+  const el = getById<HTMLSelectElement>(id);
+  const v = Number(el.value);
+  return Number.isFinite(v) ? Math.round(v) : 3;
+}
+
+/* ============================================================
+ * 不加班设置
+ * ========================================================== */
+
+/** 读取某个周几 checkbox 容器中勾选的周几集合 */
+function readNoOvertimeWeekdays(containerId: string): number[] {
+  const out: number[] = [];
+  document
+    .querySelectorAll<HTMLInputElement>(`#${containerId} input:checked`)
+    .forEach((cb) => {
+      const v = Number(cb.value);
+      if (Number.isFinite(v)) out.push(v);
+    });
+  return out;
+}
+
+/** 单月：持久化当月 A 班日中"不加班"的日期（key: "year-month-date"） */
+const noOvertimeDateSet = new Set<string>();
+
+function noOtDateKey(y: number, m: number, date: number): string {
+  return `${y}-${m}-${date}`;
+}
+
+/** 计算当月所有 A 班日（跳过 C/B/F 班），返回 dayjs 数组 */
+function getADaysInMonth(
+  year: number,
+  month: number,
+  restDayWeekday: number,
+): dayjs.Dayjs[] {
+  const start = dayjs(new Date(year, month - 1, 1));
+  const daysInMonth = start.daysInMonth();
+  const out: dayjs.Dayjs[] = [];
+  for (let i = 0; i < daysInMonth; i++) {
+    const d = start.add(i, "day");
+    if (isRestDay(d, restDayWeekday)) continue; // C 班
+    if (isHoliday(d)) continue; // F 班
+    if (isBDay(d, restDayWeekday)) continue; // B 班
+    out.push(d); // A 班
+  }
+  return out;
+}
+
+/** 读取单月"按日期"不加班列表：返回未勾选（=不加班）的日期 */
+function readNoOvertimeDates(): number[] {
+  const out: number[] = [];
+  document
+    .querySelectorAll<HTMLInputElement>("#single-noot-dates .noot-date:not(:checked)")
+    .forEach((cb) => {
+      const v = Number(cb.value);
+      if (Number.isFinite(v)) out.push(v);
+    });
+  return out;
+}
+
+/**
+ * 渲染单月"按日期"不加班 checkbox 网格。
+ * 仅在 year/month/restDayWeekday 变化（A 班日集合变化）时重建，避免勾选状态丢失。
+ */
+function ensureNoOvertimeDates(
+  year: number,
+  month: number,
+  restDayWeekday: number,
+): void {
+  const container = getById("single-noot-dates");
+  const sig = `${year}-${month}-${restDayWeekday}`;
+  if (container.dataset.sig === sig) return;
+  container.dataset.sig = sig;
+
+  const aDays = getADaysInMonth(year, month, restDayWeekday);
+  if (aDays.length === 0) {
+    container.innerHTML = `<p class="hint">本月无 A 班日。</p>`;
+    return;
+  }
+  const items = aDays
+    .map((d) => {
+      const date = d.date();
+      const overtime = !noOvertimeDateSet.has(noOtDateKey(year, month, date));
+      return `<label><input type="checkbox" class="noot-date" value="${date}"${overtime ? " checked" : ""}> ${date}日(${WEEKDAY_NAMES[d.day()]})</label>`;
+    })
+    .join("");
+  container.innerHTML = `<div class="checkbox-grid">${items}</div>`;
+
+  container.querySelectorAll<HTMLInputElement>(".noot-date").forEach((cb) => {
+    cb.addEventListener("change", () => {
+      const date = Number(cb.value);
+      const key = noOtDateKey(year, month, date);
+      if (cb.checked) noOvertimeDateSet.delete(key); // 勾选 = 加班
+      else noOvertimeDateSet.add(key); // 取消勾 = 不加班
+      recalcSingle();
+    });
+  });
 }
 
 /* ============================================================
@@ -236,9 +355,12 @@ function renderSingleResult(r: MonthlyResult): void {
   getById("single-result").innerHTML = `
     <div class="stats-row">
       <div class="stat"><span class="stat-label">工作日</span><span class="stat-val">${r.totalWorkDays}</span></div>
-      <div class="stat"><span class="stat-label">周二天数</span><span class="stat-val">${r.tuesdayDoubleDays}</span></div>
-      <div class="stat"><span class="stat-label">节假日</span><span class="stat-val">${r.holidayDays}</span></div>
-      <div class="stat"><span class="stat-label">夜班天数</span><span class="stat-val">${r.nightShiftDays}</span></div>
+      <div class="stat"><span class="stat-label">A班</span><span class="stat-val">${r.aDayCount}</span></div>
+      <div class="stat"><span class="stat-label">B班</span><span class="stat-val">${r.bDayCount}</span></div>
+      <div class="stat"><span class="stat-label">F班(节假日)</span><span class="stat-val">${r.fDayCount}</span></div>
+      <div class="stat"><span class="stat-label">休息</span><span class="stat-val">${WEEKDAY_NAMES[r.restDayWeekday]}</span></div>
+      <div class="stat"><span class="stat-label">不加班</span><span class="stat-val">${r.noOvertimeCount}</span></div>
+      <div class="stat"><span class="stat-label">夜班</span><span class="stat-val">${r.nightShiftDays}</span></div>
       <div class="stat"><span class="stat-label">班次</span><span class="stat-val">${SHIFT_LABEL(r)}</span></div>
     </div>
     <table class="result-table">
@@ -247,9 +369,9 @@ function renderSingleResult(r: MonthlyResult): void {
       </thead>
       <tbody>
         <tr><td>固定薪资合计</td><td style="text-align:right">${fmt(r.fixedTotal)}</td></tr>
-        <tr><td>工作日加班(周一/四/五 1.5倍)</td><td class="income" style="text-align:right">${fmt(r.weekdayOvertime)}</td></tr>
-        <tr><td>周二双倍加班</td><td class="income" style="text-align:right">${fmt(r.tuesdayDoublePay)}</td></tr>
-        <tr><td>节假日补差</td><td class="income" style="text-align:right">${fmt(r.holidayExtra)}</td></tr>
+        <tr><td>A班加班(3h×1.5倍)</td><td class="income" style="text-align:right">${fmt(r.weekdayOvertime)}</td></tr>
+        <tr><td>B班双倍(11h×2倍)</td><td class="income" style="text-align:right">${fmt(r.tuesdayDoublePay)}</td></tr>
+        <tr><td>F班补差(11h×2倍)</td><td class="income" style="text-align:right">${fmt(r.holidayExtra)}</td></tr>
         <tr><td>夜班补贴</td><td class="income" style="text-align:right">${fmt(r.nightSubsidy)}</td></tr>
         <tr class="total-row"><td>税前总工资</td><td style="text-align:right">${fmt(r.grossPay)}</td></tr>
         <tr><td>社保-养老(8%)</td><td class="deduction" style="text-align:right">-${fmt(r.socialInsurance.pension)}</td></tr>
@@ -292,8 +414,9 @@ function renderMultiResult(s: MultiMonthSummary): void {
       (r) => `<tr>
         <td>${r.year}/${String(r.month).padStart(2, "0")}</td>
         <td style="text-align:center">${r.totalWorkDays}</td>
-        <td style="text-align:center">${r.tuesdayDoubleDays}</td>
-        <td style="text-align:center">${r.holidayDays}</td>
+        <td style="text-align:center">${r.aDayCount}</td>
+        <td style="text-align:center">${r.bDayCount}</td>
+        <td style="text-align:center">${r.fDayCount}</td>
         <td style="text-align:center">${SHIFT_LABEL(r)}</td>
         <td style="text-align:right">${fmt(r.grossPay)}</td>
         <td class="deduction" style="text-align:right">-${fmt(r.socialInsurance.total)}</td>
@@ -316,7 +439,7 @@ function renderMultiResult(s: MultiMonthSummary): void {
     <table class="result-table">
       <thead>
         <tr>
-          <th>月份</th><th>工作日</th><th>周二</th><th>节假日</th><th>班次</th>
+          <th>月份</th><th>工作日</th><th>A班</th><th>B班</th><th>F班</th><th>班次</th>
           <th style="text-align:right">税前</th><th style="text-align:right">社保</th>
           <th style="text-align:right">个税</th><th style="text-align:right">到手</th>
         </tr>
@@ -355,9 +478,19 @@ let lastMulti: MultiMonthSummary | null = null;
 function recalcSingle(): void {
   const year = validateNumber("single-year", yearSchema, 2026);
   const month = validateNumber("single-month", monthSchema, 7);
-  const firstRestDay = validateNumber("single-restday", restdaySchema, 2);
+  const restDayWeekday = readRestDayWeekday("single-restday-weekday");
+  ensureNoOvertimeDates(year, month, restDayWeekday);
+  const noOvertimeDates = readNoOvertimeDates();
+  const noOvertimeWeekdays = readNoOvertimeWeekdays("single-noot-weekdays");
   const config = readConfig("single");
-  lastSingle = calcMonthlySalary({ year, month, firstRestDay, config });
+  lastSingle = calcMonthlySalary({
+    year,
+    month,
+    restDayWeekday,
+    noOvertimeDates,
+    noOvertimeWeekdays,
+    config,
+  });
   renderSingleResult(lastSingle);
 }
 
@@ -365,8 +498,9 @@ function recalcMulti(): void {
   const start = readMonth("multi-start", 2026, 1);
   const end = readMonth("multi-end", 2026, 12);
   const months = enumerateMonths(start, end);
-  ensureRestdayInputs(months);
-  const restDays = readRestDays(months);
+  ensureRestdayWeekdayInputs(months);
+  const restDayWeekday = readRestdayWeekdays(months);
+  const noOvertimeWeekdays = readNoOvertimeWeekdays("multi-noot-weekdays");
   const config = readConfig("multi");
   lastMulti = calcMultiMonth(
     start.year,
@@ -374,7 +508,9 @@ function recalcMulti(): void {
     end.year,
     end.month,
     config,
-    restDays,
+    restDayWeekday,
+    noOvertimeWeekdays,
+    [],
   );
   multiPage = 0;
   renderMultiResult(lastMulti);
@@ -387,12 +523,12 @@ function recalcMulti(): void {
 function formatSingleText(r: MonthlyResult): string {
   return [
     `【${r.year}年${r.month}月 工资明细】`,
-    `班次：${SHIFT_LABEL(r)} | 工作日 ${r.totalWorkDays} 天 | 周二 ${r.tuesdayDoubleDays} 天 | 节假日 ${r.holidayDays} 天 | 夜班 ${r.nightShiftDays} 天`,
+    `班次：${SHIFT_LABEL(r)} | 工作日 ${r.totalWorkDays} 天 | A班 ${r.aDayCount} | B班 ${r.bDayCount} | F班(节假日) ${r.fDayCount} | 休息${WEEKDAY_NAMES[r.restDayWeekday]} | 不加班 ${r.noOvertimeCount} 天 | 夜班 ${r.nightShiftDays} 天`,
     ``,
     `固定薪资：${fmt(r.fixedTotal)}`,
-    `工作日加班：${fmt(r.weekdayOvertime)}`,
-    `周二双倍：${fmt(r.tuesdayDoublePay)}`,
-    `节假日补差：${fmt(r.holidayExtra)}`,
+    `A班加班(3h×1.5)：${fmt(r.weekdayOvertime)}`,
+    `B班双倍(11h×2)：${fmt(r.tuesdayDoublePay)}`,
+    `F班补差(11h×2)：${fmt(r.holidayExtra)}`,
     `夜班补贴：${fmt(r.nightSubsidy)}`,
     `税前总工资：${fmt(r.grossPay)}`,
     `社保扣款：-${fmt(r.socialInsurance.total)}（养老 ${fmt(r.socialInsurance.pension)} / 医疗 ${fmt(r.socialInsurance.medical)} / 失业 ${fmt(r.socialInsurance.unemployment)} / 大额长护 ${fmt(r.socialInsurance.fixed)}）`,
@@ -405,7 +541,7 @@ function formatMultiText(s: MultiMonthSummary): string {
   const lines = ["【多月工资汇总】"];
   s.results.forEach((r) => {
     lines.push(
-      `${r.year}-${String(r.month).padStart(2, "0")} | 工作日 ${r.totalWorkDays} | 税前 ${fmt(r.grossPay)} | 社保 ${fmt(r.socialInsurance.total)} | 个税 ${fmt(r.tax)} | 到手 ${fmt(r.netPay)}`,
+      `${r.year}-${String(r.month).padStart(2, "0")} | 工作日 ${r.totalWorkDays}(A${r.aDayCount}/B${r.bDayCount}/F${r.fDayCount}) | 税前 ${fmt(r.grossPay)} | 社保 ${fmt(r.socialInsurance.total)} | 个税 ${fmt(r.tax)} | 到手 ${fmt(r.netPay)}`,
     );
   });
   lines.push(
@@ -478,7 +614,6 @@ function setupTabs(): void {
 const SINGLE_INPUTS = [
   "single-year",
   "single-month",
-  "single-restday",
   "single-base",
   "single-position",
   "single-attendance",
@@ -499,11 +634,24 @@ function init(): void {
   SINGLE_INPUTS.forEach((id) => {
     getById<HTMLInputElement>(id).addEventListener("input", recalcSingle);
   });
+  // 单月：C 班周几下拉
+  getById<HTMLSelectElement>("single-restday-weekday").addEventListener(
+    "change",
+    recalcSingle,
+  );
+  // 单月：不加班周几
+  document
+    .querySelectorAll<HTMLInputElement>("#single-noot-weekdays input")
+    .forEach((cb) => cb.addEventListener("change", recalcSingle));
 
   // 多月：实时计算
   MULTI_INPUTS.forEach((id) => {
     getById<HTMLInputElement>(id).addEventListener("input", recalcMulti);
   });
+  // 多月：不加班周几
+  document
+    .querySelectorAll<HTMLInputElement>("#multi-noot-weekdays input")
+    .forEach((cb) => cb.addEventListener("change", recalcMulti));
 
   // 休息日模式切换
   document
