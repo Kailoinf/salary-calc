@@ -1,7 +1,6 @@
 import type { SalaryConfig, MonthlyResult, MultiMonthSummary } from "./types";
 import { calcMonthlySalary, calcMultiMonth } from "./utils/salary";
-import { isRestDay, isBDay, isHoliday } from "./utils/date";
-import dayjs from "dayjs";
+import { getADayDates } from "./utils/date";
 import { z } from "zod";
 
 /* ============================================================
@@ -274,25 +273,6 @@ function noOtDateKey(y: number, m: number, date: number): string {
   return `${y}-${m}-${date}`;
 }
 
-/** 计算当月所有 A 班日（跳过 C/B/F 班），返回 dayjs 数组 */
-function getADaysInMonth(
-  year: number,
-  month: number,
-  restDayWeekday: number,
-): dayjs.Dayjs[] {
-  const start = dayjs(new Date(year, month - 1, 1));
-  const daysInMonth = start.daysInMonth();
-  const out: dayjs.Dayjs[] = [];
-  for (let i = 0; i < daysInMonth; i++) {
-    const d = start.add(i, "day");
-    if (isRestDay(d, restDayWeekday)) continue; // C 班
-    if (isHoliday(d)) continue; // F 班
-    if (isBDay(d, restDayWeekday)) continue; // B 班
-    out.push(d); // A 班
-  }
-  return out;
-}
-
 /** 读取单月"按日期"不加班列表：返回未勾选（=不加班）的日期 */
 function readNoOvertimeDates(): number[] {
   const out: number[] = [];
@@ -319,7 +299,7 @@ function ensureNoOvertimeDates(
   if (container.dataset.sig === sig) return;
   container.dataset.sig = sig;
 
-  const aDays = getADaysInMonth(year, month, restDayWeekday);
+  const aDays = getADayDates(year, month, restDayWeekday);
   if (aDays.length === 0) {
     container.innerHTML = `<p class="hint">本月无 A 班日。</p>`;
     return;

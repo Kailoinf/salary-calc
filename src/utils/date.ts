@@ -61,6 +61,28 @@ export function isBDay(date: dayjs.Dayjs, restDayWeekday: number): boolean {
 }
 
 /**
+ * 返回当月所有 A 班日（排除 C/B/F 班），供 UI 渲染不加班勾选列表。
+ * ponytail: 避免 main.ts 重复日期分类逻辑。
+ */
+export function getADayDates(
+  year: number,
+  month: number,
+  restDayWeekday: number,
+): dayjs.Dayjs[] {
+  const start = dayjs(new Date(year, month - 1, 1));
+  const daysInMonth = start.daysInMonth();
+  const out: dayjs.Dayjs[] = [];
+  for (let i = 0; i < daysInMonth; i++) {
+    const d = start.add(i, "day");
+    if (d.day() === restDayWeekday) continue;           // C 班
+    if ((d.day() + 1) % 7 === restDayWeekday) continue; // B 班
+    if (isHoliday(d)) continue;                          // F 班
+    out.push(d);                                         // A 班
+  }
+  return out;
+}
+
+/**
  * 核心函数：遍历当月每一天，按班型分类统计出勤。
  *   - C 班（休息日）：跳过，不出勤；
  *   - F 班（法定节假日 isHoliday）：fDayCount；
