@@ -1,4 +1,4 @@
-import type { SalaryConfig, MonthlyResult, MultiMonthSummary, ShiftType } from "./types";
+import type { SalaryConfig, MonthlyResult, MultiMonthSummary, ShiftType, BDayHours } from "./types";
 import { calcMonthlySalary, calcMultiMonth } from "./utils/salary";
 import { getADayDates } from "./utils/date";
 import { z } from "zod";
@@ -256,6 +256,12 @@ function readShiftType(id: string): "day" | "night" {
   return el.value === "night" ? "night" : "day";
 }
 
+/** 读取 B班小时 select 的值 (8/11) */
+function readBDayHours(id: string): BDayHours {
+  const el = getById<HTMLSelectElement>(id);
+  return el.value === "8" ? 8 : 11;
+}
+
 /* ============================================================
  * 不加班设置
  * ========================================================== */
@@ -357,7 +363,7 @@ function renderSingleResult(r: MonthlyResult): void {
       <tbody>
         <tr><td>固定薪资合计</td><td style="text-align:right">${fmt(r.fixedTotal)}</td></tr>
         <tr><td>A班加班(3h×1.5倍)</td><td class="income" style="text-align:right">${fmt(r.weekdayOvertime)}</td></tr>
-        <tr><td>B班双倍(11h×2倍)</td><td class="income" style="text-align:right">${fmt(r.tuesdayDoublePay)}</td></tr>
+        <tr><td>B班双倍(${r.bDayHours}h×2倍)</td><td class="income" style="text-align:right">${fmt(r.tuesdayDoublePay)}</td></tr>
         <tr><td>F班节假日(11h×3倍)</td><td class="income" style="text-align:right">${fmt(r.holidayExtra)}</td></tr>
         <tr><td>夜班补贴</td><td class="income" style="text-align:right">${fmt(r.nightSubsidy)}</td></tr>
         <tr class="total-row"><td>税前总工资</td><td style="text-align:right">${fmt(r.grossPay)}</td></tr>
@@ -471,6 +477,7 @@ function recalcSingle(): void {
   const noOvertimeWeekdays = readNoOvertimeWeekdays("single-noot-weekdays");
   const config = readConfig("single");
   const shiftType = readShiftType("single-shift");
+  const bDayHours = readBDayHours("single-bday-hours");
   // 上月班次 = 当月相反（第一个休息日之前沿用）
   const prevShiftType: ShiftType = shiftType === "night" ? "day" : "night";
   lastSingle = calcMonthlySalary({
@@ -479,6 +486,7 @@ function recalcSingle(): void {
     restDayWeekday,
     shiftType,
     prevShiftType,
+    bDayHours,
     noOvertimeDates,
     noOvertimeWeekdays,
     config,
@@ -495,6 +503,7 @@ function recalcMulti(): void {
   const noOvertimeWeekdays = readNoOvertimeWeekdays("multi-noot-weekdays");
   const config = readConfig("multi");
   const shiftType = readShiftType("multi-shift");
+  const bDayHours = readBDayHours("multi-bday-hours");
   lastMulti = calcMultiMonth(
     start.year,
     start.month,
@@ -503,6 +512,7 @@ function recalcMulti(): void {
     config,
     restDayWeekday,
     shiftType,
+    bDayHours,
     noOvertimeWeekdays,
     [],
   );
@@ -521,7 +531,7 @@ function formatSingleText(r: MonthlyResult): string {
     ``,
     `固定薪资：${fmt(r.fixedTotal)}`,
     `A班加班(3h×1.5)：${fmt(r.weekdayOvertime)}`,
-    `B班双倍(11h×2)：${fmt(r.tuesdayDoublePay)}`,
+    `B班双倍(${r.bDayHours}h×2)：${fmt(r.tuesdayDoublePay)}`,
     `F班节假日(11h×3)：${fmt(r.holidayExtra)}`,
     `夜班补贴：${fmt(r.nightSubsidy)}`,
     `税前总工资：${fmt(r.grossPay)}`,
@@ -635,6 +645,8 @@ function init(): void {
   );
   // 单月：班次切换
   getById<HTMLSelectElement>("single-shift").addEventListener("change", recalcSingle);
+  // 单月：B班工时
+  getById<HTMLSelectElement>("single-bday-hours").addEventListener("change", recalcSingle);
   // 单月：不加班周几
   document
     .querySelectorAll<HTMLInputElement>("#single-noot-weekdays input")
@@ -650,6 +662,8 @@ function init(): void {
     .forEach((cb) => cb.addEventListener("change", recalcMulti));
   // 多月：班次切换
   getById<HTMLSelectElement>("multi-shift").addEventListener("change", recalcMulti);
+  // 多月：B班工时
+  getById<HTMLSelectElement>("multi-bday-hours").addEventListener("change", recalcMulti);
 
   // 休息日模式切换
   document

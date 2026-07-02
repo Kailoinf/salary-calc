@@ -20,6 +20,9 @@ export interface SocialInsurance {
 /** 排班类型 */
 export type ShiftType = "day" | "night";
 
+/** B班出勤小时数 */
+export type BDayHours = 8 | 11;
+
 /** 月度计算输入参数 */
 export interface MonthlyInput {
   year: number;
@@ -27,6 +30,7 @@ export interface MonthlyInput {
   restDayWeekday: number; // C 班（休息日）周几，0=周日~6=周六，默认 3（周三）
   shiftType: ShiftType;     // 当月班次（第一个休息日之后生效）
   prevShiftType: ShiftType; // 上月班次（第一个休息日之前沿用）
+  bDayHours: BDayHours;     // B班出勤小时数，默认11
   noOvertimeDates: number[]; // 当月 A 班日中"不加班"的日期（几号）集合
   noOvertimeWeekdays: number[]; // "不加班"的周几集合（0~6），命中即该 A 班日不计加班
   config: SalaryConfig;
@@ -64,6 +68,7 @@ export interface MonthlyResult {
   netPay: number; // 到手工资
   // 元数据
   shiftType: ShiftType;
+  bDayHours: BDayHours; // B班小时数
   baseHourlyRate: number; // 基础时薪
 }
 

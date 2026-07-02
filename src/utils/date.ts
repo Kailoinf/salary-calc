@@ -142,7 +142,7 @@ export function getWorkDaysInMonth(
     const dom = d.date();
     const shift = dayShift(dom, firstRest, prevShiftType, currShiftType);
 
-    // 1) F 班：法定节假日最高优先级（也参与白/夜班判定）
+    // 1) F 班：法定节假日最高优先级
     if (holidayDateSet.has(dom)) {
       totalDays++;
       fDayCount++;
