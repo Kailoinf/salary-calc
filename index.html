@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/src/style.css" />
+    <title>工资计算器</title>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>💰 工资计算器</h1>
+        <p class="subtitle">宜昌社保 · 个税3% · 排班轮换</p>
+      </header>
+
+      <!-- Tab 切换 -->
+      <nav class="tabs">
+        <button class="tab active" data-tab="single">单月计算</button>
+        <button class="tab" data-tab="multi">多月批量</button>
+      </nav>
+
+      <!-- ====== 模块1: 单月工资计算 ====== -->
+      <section id="tab-single" class="tab-content active">
+        <div class="card">
+          <h2>📅 日期与排班</h2>
+          <div class="form-row">
+            <label>年份 <input type="number" id="single-year" value="2026" min="2020" max="2030"></label>
+            <label>月份 <input type="number" id="single-month" value="7" min="1" max="12"></label>
+            <label>当月第一个休息日(几号) <input type="number" id="single-restday" value="2" min="1" max="31"></label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>💰 基础薪资</h2>
+          <div class="form-row">
+            <label>底薪 <input type="number" id="single-base" value="2800" min="0" step="100"></label>
+            <label>岗位工资 <input type="number" id="single-position" value="200" min="0" step="10"></label>
+            <label>全勤奖 <input type="number" id="single-attendance" value="150" min="0" step="10"></label>
+            <label>绩效工资 <input type="number" id="single-performance" value="200" min="0" step="10"></label>
+          </div>
+        </div>
+
+        <div class="card result-card">
+          <h2>📊 计算结果</h2>
+          <div id="single-result"></div>
+        </div>
+
+        <button id="single-copy" class="btn-copy" style="display:none">📋 复制薪资明细</button>
+      </section>
+
+      <!-- ====== 模块2: 多月批量计算 ====== -->
+      <section id="tab-multi" class="tab-content">
+        <div class="card">
+          <h2>📅 日期区间</h2>
+          <div class="form-row">
+            <label>起始年月 <input type="month" id="multi-start" value="2026-01"></label>
+            <label>结束年月 <input type="month" id="multi-end" value="2026-12"></label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>💰 基础薪资</h2>
+          <div class="form-row">
+            <label>底薪 <input type="number" id="multi-base" value="2800" min="0" step="100"></label>
+            <label>岗位工资 <input type="number" id="multi-position" value="200" min="0" step="10"></label>
+            <label>全勤奖 <input type="number" id="multi-attendance" value="150" min="0" step="10"></label>
+            <label>绩效工资 <input type="number" id="multi-performance" value="200" min="0" step="10"></label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🔄 休息日配置</h2>
+          <div class="restday-mode">
+            <label><input type="radio" name="restday-mode" value="uniform" checked> 所有月份统一</label>
+            <label><input type="radio" name="restday-mode" value="individual"> 每月单独编辑</label>
+          </div>
+          <div id="multi-restday-inputs"></div>
+        </div>
+
+        <div class="card">
+          <h2>📊 多月汇总</h2>
+          <div id="multi-results"></div>
+          <div id="multi-summary" class="summary-box"></div>
+        </div>
+
+        <button id="multi-copy" class="btn-copy" style="display:none">📋 复制汇总文本</button>
+      </section>
+
+      <!-- 社保参数说明 -->
+      <footer class="info-box">
+        <p>📌 社保参数（不可修改）：基数 4299 | 养老8% | 医疗2% | 失业0.3% | 大额+长护 14.95/月</p>
+        <p>📌 个税：起征点 5000，税率 3%，无专项附加扣除</p>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

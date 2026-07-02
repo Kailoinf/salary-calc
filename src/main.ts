@@ -1,0 +1,536 @@
+import type { SalaryConfig, MonthlyResult, MultiMonthSummary } from "./types";
+import { calcMonthlySalary, calcMultiMonth } from "./utils/salary";
+import { z } from "zod";
+
+/* ============================================================
+ * 通用工具
+ * ========================================================== */
+
+function getById<T extends HTMLElement>(id: string): T {
+  const el = document.getElementById(id);
+  if (!el) throw new Error(`找不到元素 #${id}`);
+  return el as T;
+}
+
+/** 取得（或创建）某个 input 紧邻其后的错误提示 span */
+function errorSpanOf(el: HTMLInputElement): HTMLSpanElement {
+  const next = el.nextElementSibling;
+  if (next instanceof HTMLSpanElement && next.classList.contains("error-msg")) {
+    return next;
+  }
+  const span = document.createElement("span");
+  span.className = "error-msg";
+  el.after(span);
+  return span;
+}
+
+/** 金额格式化：两位小数 + 千分位 */
+function fmt(n: number): string {
+  return n.toLocaleString("zh-CN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+/* ============================================================
+ * Zod 校验 schema
+ * ========================================================== */
+
+const yearSchema = z
+  .number()
+  .int()
+  .min(2020, "年份需在 2020-2030")
+  .max(2030, "年份需在 2020-2030");
+const monthSchema = z.number().int().min(1, "月份 1-12").max(12, "月份 1-12");
+const restdaySchema = z
+  .number()
+  .int()
+  .min(1, "休息日 1-31")
+  .max(31, "休息日 1-31");
+const salarySchema = z.number().min(0, "不能小于 0");
+
+/** 校验单个 number 输入；失败时显示错误并以 fallback 回退（不阻断计算） */
+function validateNumber(
+  id: string,
+  schema: z.ZodType<number>,
+  fallback: number,
+): number {
+  const el = getById<HTMLInputElement>(id);
+  const span = errorSpanOf(el);
+  const raw = el.value.trim();
+  if (raw === "") {
+    span.textContent = "必填";
+    return fallback;
+  }
+  const n = Number(raw);
+  if (!Number.isFinite(n)) {
+    span.textContent = "需为数字";
+    return fallback;
+  }
+  const r = schema.safeParse(n);
+  if (r.success) {
+    span.textContent = "";
+    return r.data;
+  }
+  span.textContent = r.error.issues[0]?.message ?? "无效";
+  return fallback;
+}
+
+/** 读取并校验 input[type=month]，返回 {year, month} */
+function readMonth(
+  id: string,
+  fy: number,
+  fm: number,
+): { year: number; month: number } {
+  const el = getById<HTMLInputElement>(id);
+  const span = errorSpanOf(el);
+  const m = /^(\d{4})-(\d{2})$/.exec(el.value);
+  if (!m) {
+    span.textContent = "格式应为 YYYY-MM";
+    return { year: fy, month: fm };
+  }
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const ry = yearSchema.safeParse(year);
+  const rm = monthSchema.safeParse(month);
+  if (ry.success && rm.success) {
+    span.textContent = "";
+    return { year, month };
+  }
+  span.textContent = !ry.success
+    ? (ry.error.issues[0]?.message ?? "无效")
+    : !rm.success
+      ? (rm.error.issues[0]?.message ?? "无效")
+      : "无效";
+  return { year: fy, month: fm };
+}
+
+/** 读取基础薪资配置 */
+function readConfig(prefix: "single" | "multi"): SalaryConfig {
+  return {
+    baseSalary: validateNumber(`${prefix}-base`, salarySchema, 2800),
+    positionPay: validateNumber(`${prefix}-position`, salarySchema, 200),
+    fullAttendanceBonus: validateNumber(
+      `${prefix}-attendance`,
+      salarySchema,
+      150,
+    ),
+    performancePay: validateNumber(`${prefix}-performance`, salarySchema, 200),
+  };
+}
+
+/* ============================================================
+ * 多月休息日管理（统一 / 单独 两种模式）
+ * ========================================================== */
+
+type RestdayMode = "uniform" | "individual";
+let restdayMode: RestdayMode = "uniform";
+
+/** key: "year-month"，value: 当月第一个休息日；单独模式下持久化用户输入 */
+const restdayMap = new Map<string, number>();
+
+function restKey(y: number, m: number): string {
+  return `${y}-${m}`;
+}
+function getRestdayFor(y: number, m: number): number {
+  return restdayMap.get(restKey(y, m)) ?? 2;
+}
+function setRestdayFor(y: number, m: number, v: number): void {
+  restdayMap.set(restKey(y, m), v);
+}
+
+interface YearMonth {
+  year: number;
+  month: number;
+}
+
+/** 枚举从 start 到 end（含）的所有月份；end 早于 start 时返回空数组 */
+function enumerateMonths(start: YearMonth, end: YearMonth): YearMonth[] {
+  const out: YearMonth[] = [];
+  let y = start.year;
+  let m = start.month;
+  let guard = 0;
+  while ((y < end.year || (y === end.year && m <= end.month)) && guard < 600) {
+    out.push({ year: y, month: m });
+    m++;
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
+    guard++;
+  }
+  return out;
+}
+
+/**
+ * 根据当前模式与月份集合渲染休息日输入区。
+ * 仅在结构（模式 + 月份集合）发生变化时才重建 DOM，避免输入时失焦。
+ */
+function ensureRestdayInputs(months: YearMonth[]): void {
+  const container = getById("multi-restday-inputs");
+  const sig =
+    restdayMode + "|" + months.map((mm) => restKey(mm.year, mm.month)).join(",");
+  if (container.dataset.sig === sig) return;
+  container.dataset.sig = sig;
+
+  if (restdayMode === "uniform") {
+    // 切换/重渲染时尽量保留用户已输入的统一值
+    const existing = document.getElementById(
+      "multi-restday-uniform",
+    ) as HTMLInputElement | null;
+    const prev =
+      existing && existing.value !== ""
+        ? existing.value
+        : String(
+            months.length > 0 ? getRestdayFor(months[0].year, months[0].month) : 2,
+          );
+    container.innerHTML = `<div class="form-row"><label>当月第一个休息日(几号) <input type="number" id="multi-restday-uniform" value="${prev}" min="1" max="31"></label></div>`;
+    getById<HTMLInputElement>("multi-restday-uniform").addEventListener(
+      "input",
+      recalcMulti,
+    );
+  } else {
+    const items = months
+      .map(
+        (mm, i) =>
+          `<label>${mm.year}年${mm.month}月 <input type="number" class="restday-individual" data-rest-idx="${i}" data-rest-key="${restKey(mm.year, mm.month)}" value="${getRestdayFor(mm.year, mm.month)}" min="1" max="31"></label>`,
+      )
+      .join("");
+    container.innerHTML = `<div class="individual-restday">${items}</div>`;
+    container
+      .querySelectorAll<HTMLInputElement>(".restday-individual")
+      .forEach((inp) => {
+        inp.addEventListener("input", () => {
+          const key = inp.dataset.restKey ?? "";
+          const parts = key.split("-");
+          const ry = Number(parts[0]);
+          const rm = Number(parts[1]);
+          const val = Number(inp.value);
+          if (Number.isFinite(val)) setRestdayFor(ry, rm, val);
+          recalcMulti();
+        });
+      });
+  }
+}
+
+/** 读取当前休息日配置：统一模式返回单值，单独模式返回数组 */
+function readRestDays(months: YearMonth[]): number[] | number {
+  if (restdayMode === "uniform") {
+    const el = document.getElementById(
+      "multi-restday-uniform",
+    ) as HTMLInputElement | null;
+    const v = el ? Number(el.value) : NaN;
+    return Number.isFinite(v) && v > 0 ? Math.round(v) : 2;
+  }
+  return months.map((mm) => getRestdayFor(mm.year, mm.month));
+}
+
+/* ============================================================
+ * 渲染
+ * ========================================================== */
+
+const SHIFT_LABEL = (r: MonthlyResult) =>
+  r.shiftType === "night" ? "夜班" : "白班";
+
+function renderSingleResult(r: MonthlyResult): void {
+  getById("single-result").innerHTML = `
+    <div class="stats-row">
+      <div class="stat"><span class="stat-label">工作日</span><span class="stat-val">${r.totalWorkDays}</span></div>
+      <div class="stat"><span class="stat-label">周二天数</span><span class="stat-val">${r.tuesdayDoubleDays}</span></div>
+      <div class="stat"><span class="stat-label">节假日</span><span class="stat-val">${r.holidayDays}</span></div>
+      <div class="stat"><span class="stat-label">夜班天数</span><span class="stat-val">${r.nightShiftDays}</span></div>
+      <div class="stat"><span class="stat-label">班次</span><span class="stat-val">${SHIFT_LABEL(r)}</span></div>
+    </div>
+    <table class="result-table">
+      <thead>
+        <tr><th>项目</th><th style="text-align:right">金额(元)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>固定薪资合计</td><td style="text-align:right">${fmt(r.fixedTotal)}</td></tr>
+        <tr><td>工作日加班(周一/四/五 1.5倍)</td><td class="income" style="text-align:right">${fmt(r.weekdayOvertime)}</td></tr>
+        <tr><td>周二双倍加班</td><td class="income" style="text-align:right">${fmt(r.tuesdayDoublePay)}</td></tr>
+        <tr><td>节假日补差</td><td class="income" style="text-align:right">${fmt(r.holidayExtra)}</td></tr>
+        <tr><td>夜班补贴</td><td class="income" style="text-align:right">${fmt(r.nightSubsidy)}</td></tr>
+        <tr class="total-row"><td>税前总工资</td><td style="text-align:right">${fmt(r.grossPay)}</td></tr>
+        <tr><td>社保-养老(8%)</td><td class="deduction" style="text-align:right">-${fmt(r.socialInsurance.pension)}</td></tr>
+        <tr><td>社保-医疗(2%)</td><td class="deduction" style="text-align:right">-${fmt(r.socialInsurance.medical)}</td></tr>
+        <tr><td>社保-失业(0.3%)</td><td class="deduction" style="text-align:right">-${fmt(r.socialInsurance.unemployment)}</td></tr>
+        <tr><td>社保-大额+长护</td><td class="deduction" style="text-align:right">-${fmt(r.socialInsurance.fixed)}</td></tr>
+        <tr><td>个税(3%)</td><td class="deduction" style="text-align:right">-${fmt(r.tax)}</td></tr>
+      </tbody>
+    </table>
+    <div class="net-pay-wrap">
+      <span class="net-label">到手工资</span>
+      <span class="net-pay">${fmt(r.netPay)}</span>
+    </div>`;
+  getById<HTMLButtonElement>("single-copy").style.display = "inline-block";
+}
+
+let multiPage = 0;
+
+function renderMultiResult(s: MultiMonthSummary): void {
+  const resultsEl = getById("multi-results");
+  const summaryEl = getById("multi-summary");
+  const copyBtn = getById<HTMLButtonElement>("multi-copy");
+
+  if (s.results.length === 0) {
+    resultsEl.innerHTML = `<p class="empty-tip">请选择有效的日期区间（结束月份需不早于起始月份）。</p>`;
+    summaryEl.innerHTML = "";
+    copyBtn.style.display = "none";
+    return;
+  }
+
+  const pageSize = 6;
+  const pageCount = Math.ceil(s.results.length / pageSize);
+  if (multiPage >= pageCount) multiPage = 0;
+  if (multiPage < 0) multiPage = 0;
+  const startIdx = multiPage * pageSize;
+  const pageItems = s.results.slice(startIdx, startIdx + pageSize);
+
+  const rows = pageItems
+    .map(
+      (r) => `<tr>
+        <td>${r.year}/${String(r.month).padStart(2, "0")}</td>
+        <td style="text-align:center">${r.totalWorkDays}</td>
+        <td style="text-align:center">${r.tuesdayDoubleDays}</td>
+        <td style="text-align:center">${r.holidayDays}</td>
+        <td style="text-align:center">${SHIFT_LABEL(r)}</td>
+        <td style="text-align:right">${fmt(r.grossPay)}</td>
+        <td class="deduction" style="text-align:right">-${fmt(r.socialInsurance.total)}</td>
+        <td class="deduction" style="text-align:right">-${fmt(r.tax)}</td>
+        <td class="income" style="text-align:right">${fmt(r.netPay)}</td>
+      </tr>`,
+    )
+    .join("");
+
+  let paginationHtml = "";
+  if (pageCount > 1) {
+    paginationHtml = `<div class="pagination">${Array.from(
+      { length: pageCount },
+      (_, i) =>
+        `<button class="page-btn${i === multiPage ? " active" : ""}" data-page="${i}">第 ${i + 1} 页</button>`,
+    ).join("")}</div>`;
+  }
+
+  resultsEl.innerHTML = `
+    <table class="result-table">
+      <thead>
+        <tr>
+          <th>月份</th><th>工作日</th><th>周二</th><th>节假日</th><th>班次</th>
+          <th style="text-align:right">税前</th><th style="text-align:right">社保</th>
+          <th style="text-align:right">个税</th><th style="text-align:right">到手</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    ${paginationHtml}`;
+
+  resultsEl.querySelectorAll<HTMLButtonElement>(".page-btn").forEach((b) => {
+    b.addEventListener("click", () => {
+      const p = Number(b.dataset.page);
+      if (Number.isFinite(p)) {
+        multiPage = p;
+        renderMultiResult(s);
+      }
+    });
+  });
+
+  summaryEl.innerHTML = `
+    <div class="summary-item"><span class="summary-label">总税前</span><span class="summary-val">${fmt(s.totalGross)}</span></div>
+    <div class="summary-item"><span class="summary-label">总社保</span><span class="summary-val deduction">${fmt(s.totalSocial)}</span></div>
+    <div class="summary-item"><span class="summary-label">总个税</span><span class="summary-val deduction">${fmt(s.totalTax)}</span></div>
+    <div class="summary-item"><span class="summary-label">总到手</span><span class="summary-val income">${fmt(s.totalNet)}</span></div>
+    <div class="summary-item"><span class="summary-label">月均到手</span><span class="summary-val income" style="font-size:1.2rem">${fmt(s.averageNet)}</span></div>`;
+
+  copyBtn.style.display = "inline-block";
+}
+
+/* ============================================================
+ * 计算入口
+ * ========================================================== */
+
+let lastSingle: MonthlyResult | null = null;
+let lastMulti: MultiMonthSummary | null = null;
+
+function recalcSingle(): void {
+  const year = validateNumber("single-year", yearSchema, 2026);
+  const month = validateNumber("single-month", monthSchema, 7);
+  const firstRestDay = validateNumber("single-restday", restdaySchema, 2);
+  const config = readConfig("single");
+  lastSingle = calcMonthlySalary({ year, month, firstRestDay, config });
+  renderSingleResult(lastSingle);
+}
+
+function recalcMulti(): void {
+  const start = readMonth("multi-start", 2026, 1);
+  const end = readMonth("multi-end", 2026, 12);
+  const months = enumerateMonths(start, end);
+  ensureRestdayInputs(months);
+  const restDays = readRestDays(months);
+  const config = readConfig("multi");
+  lastMulti = calcMultiMonth(
+    start.year,
+    start.month,
+    end.year,
+    end.month,
+    config,
+    restDays,
+  );
+  multiPage = 0;
+  renderMultiResult(lastMulti);
+}
+
+/* ============================================================
+ * 复制
+ * ========================================================== */
+
+function formatSingleText(r: MonthlyResult): string {
+  return [
+    `【${r.year}年${r.month}月 工资明细】`,
+    `班次：${SHIFT_LABEL(r)} | 工作日 ${r.totalWorkDays} 天 | 周二 ${r.tuesdayDoubleDays} 天 | 节假日 ${r.holidayDays} 天 | 夜班 ${r.nightShiftDays} 天`,
+    ``,
+    `固定薪资：${fmt(r.fixedTotal)}`,
+    `工作日加班：${fmt(r.weekdayOvertime)}`,
+    `周二双倍：${fmt(r.tuesdayDoublePay)}`,
+    `节假日补差：${fmt(r.holidayExtra)}`,
+    `夜班补贴：${fmt(r.nightSubsidy)}`,
+    `税前总工资：${fmt(r.grossPay)}`,
+    `社保扣款：-${fmt(r.socialInsurance.total)}（养老 ${fmt(r.socialInsurance.pension)} / 医疗 ${fmt(r.socialInsurance.medical)} / 失业 ${fmt(r.socialInsurance.unemployment)} / 大额长护 ${fmt(r.socialInsurance.fixed)}）`,
+    `个税：-${fmt(r.tax)}`,
+    `到手工资：${fmt(r.netPay)}`,
+  ].join("\n");
+}
+
+function formatMultiText(s: MultiMonthSummary): string {
+  const lines = ["【多月工资汇总】"];
+  s.results.forEach((r) => {
+    lines.push(
+      `${r.year}-${String(r.month).padStart(2, "0")} | 工作日 ${r.totalWorkDays} | 税前 ${fmt(r.grossPay)} | 社保 ${fmt(r.socialInsurance.total)} | 个税 ${fmt(r.tax)} | 到手 ${fmt(r.netPay)}`,
+    );
+  });
+  lines.push(
+    "",
+    `总税前：${fmt(s.totalGross)}`,
+    `总社保：${fmt(s.totalSocial)}`,
+    `总个税：${fmt(s.totalTax)}`,
+    `总到手：${fmt(s.totalNet)}`,
+    `月均到手：${fmt(s.averageNet)}`,
+  );
+  return lines.join("\n");
+}
+
+/** execCommand 兜底（非 HTTPS 环境下 clipboard API 不可用时） */
+function fallbackCopy(text: string): void {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+  } catch {
+    /* 忽略 */
+  }
+  document.body.removeChild(ta);
+}
+
+async function copyText(text: string, btn: HTMLButtonElement): Promise<void> {
+  const original = btn.textContent ?? "";
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      fallbackCopy(text);
+    }
+  } catch {
+    fallbackCopy(text);
+  }
+  btn.textContent = "✅ 已复制！";
+  window.setTimeout(() => {
+    btn.textContent = original;
+  }, 2000);
+}
+
+/* ============================================================
+ * Tab 切换
+ * ========================================================== */
+
+function setupTabs(): void {
+  document.querySelectorAll<HTMLButtonElement>(".tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tab = btn.dataset.tab;
+      if (!tab) return;
+      document.querySelectorAll<HTMLButtonElement>(".tab").forEach((b) => {
+        b.classList.toggle("active", b === btn);
+      });
+      document.querySelectorAll<HTMLElement>(".tab-content").forEach((sec) => {
+        sec.classList.toggle("active", sec.id === `tab-${tab}`);
+      });
+    });
+  });
+}
+
+/* ============================================================
+ * 事件绑定 / 初始化
+ * ========================================================== */
+
+const SINGLE_INPUTS = [
+  "single-year",
+  "single-month",
+  "single-restday",
+  "single-base",
+  "single-position",
+  "single-attendance",
+  "single-performance",
+];
+
+const MULTI_INPUTS = [
+  "multi-start",
+  "multi-end",
+  "multi-base",
+  "multi-position",
+  "multi-attendance",
+  "multi-performance",
+];
+
+function init(): void {
+  // 单月：实时计算
+  SINGLE_INPUTS.forEach((id) => {
+    getById<HTMLInputElement>(id).addEventListener("input", recalcSingle);
+  });
+
+  // 多月：实时计算
+  MULTI_INPUTS.forEach((id) => {
+    getById<HTMLInputElement>(id).addEventListener("input", recalcMulti);
+  });
+
+  // 休息日模式切换
+  document
+    .querySelectorAll<HTMLInputElement>('input[name="restday-mode"]')
+    .forEach((radio) => {
+      radio.addEventListener("change", () => {
+        const checked = document.querySelector<HTMLInputElement>(
+          'input[name="restday-mode"]:checked',
+        );
+        restdayMode = (checked?.value as RestdayMode) ?? "uniform";
+        recalcMulti();
+      });
+    });
+
+  // 复制按钮
+  getById<HTMLButtonElement>("single-copy").addEventListener("click", () => {
+    if (lastSingle) void copyText(formatSingleText(lastSingle), getById<HTMLButtonElement>("single-copy"));
+  });
+  getById<HTMLButtonElement>("multi-copy").addEventListener("click", () => {
+    if (lastMulti) void copyText(formatMultiText(lastMulti), getById<HTMLButtonElement>("multi-copy"));
+  });
+
+  setupTabs();
+
+  // 首次计算
+  recalcSingle();
+  recalcMulti();
+}
+
+document.addEventListener("DOMContentLoaded", init);
