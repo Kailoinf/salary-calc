@@ -91,7 +91,6 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
   );
 
   // e. B 班双倍加班费：默认11h×2，勾选8h的B班日按8h×2
-  const bDay8hSet = new Set(bDay8hDates);
   const bDay8hCount = bDay8hDates.length;
   const tuesdayDoublePay = round2(
     (stats.bDayCount - bDay8hCount) * 11 * 2 * baseHourlyRate +
