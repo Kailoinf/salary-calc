@@ -87,41 +87,77 @@ export function getWorkDaysInMonth(
   const start = dayjs(new Date(year, month - 1, 1));
   const daysInMonth = start.daysInMonth();
 
+  // ==== 第一遍：收集所有节假日日期 ====
+  const holidayDateSet = new Set<number>();
+  for (let i = 0; i < daysInMonth; i++) {
+    const d = start.add(i, "day");
+    if (isHoliday(d)) holidayDateSet.add(d.date());
+  }
+
+  // ==== 第二遍：计算 F 班冲突导致的临时后移 ====
+  // ponytail: F班撞C→C后移1天, F撞B→B后移1天+C后移2天, 仅当周临时
+  const shiftedBDates = new Set<number>();
+  const shiftedCDates = new Set<number>();
+  for (const hd of holidayDateSet) {
+    const isC = (new Date(year, month - 1, hd).getDay()) === restDayWeekday;
+    const isB = ((new Date(year, month - 1, hd).getDay()) + 1) % 7 === restDayWeekday;
+
+    if (isC) {
+      const cTarget = hd + 1;
+      if (cTarget <= daysInMonth && !holidayDateSet.has(cTarget))
+        shiftedCDates.add(cTarget);
+    }
+    if (isB) {
+      const bTarget = hd + 1;
+      if (bTarget <= daysInMonth && !holidayDateSet.has(bTarget))
+        shiftedBDates.add(bTarget);
+      const cTarget = hd + 2;
+      if (cTarget <= daysInMonth && !holidayDateSet.has(cTarget))
+        shiftedCDates.add(cTarget);
+    }
+  }
+
+  // ==== 第三遍：按优先级分类统计 ====
   let totalDays = 0;
   let aDayCount = 0;
   let bDayCount = 0;
   let fDayCount = 0;
   let noOvertimeCount = 0;
   const holidayDays: dayjs.Dayjs[] = [];
-
-  // 转 Set 加速查找
   const noOvertimeDateSet = new Set(noOvertimeDates);
   const noOvertimeWeekdaySet = new Set(noOvertimeWeekdays);
 
   for (let i = 0; i < daysInMonth; i++) {
     const d = start.add(i, "day");
+    const dom = d.date();
 
-    // C 班：休息日不出勤
-    if (isRestDay(d, restDayWeekday)) continue;
-    totalDays++;
-
-    if (isHoliday(d)) {
-      // F 班：法定节假日
+    // 1) F 班：节假日最高优先级
+    if (holidayDateSet.has(dom)) {
+      totalDays++;
       fDayCount++;
       holidayDays.push(d);
-    } else if (isBDay(d, restDayWeekday)) {
-      // B 班：C 班前一天
+      continue;
+    }
+
+    // 2) C 班（休息日，不出勤）：标准 C 或被冲突后移来的 C
+    //    但如果同时也是被 shift 来的 B，说明 B 抢了 C 的位置，C 已再后移
+    const isStdC = d.day() === restDayWeekday;
+    const isShiftedC = shiftedCDates.has(dom);
+    if ((isStdC || isShiftedC) && !shiftedBDates.has(dom)) continue;
+
+    // 3) 出勤日
+    totalDays++;
+
+    // 4) B 班：标准 B（未被 holiday 占且未被 shift 成 C）或被冲突后移来的 B
+    const isStdB = isBDay(d, restDayWeekday) && !shiftedCDates.has(dom);
+    const isShiftedB = shiftedBDates.has(dom);
+    if (isStdB || isShiftedB) {
       bDayCount++;
     } else {
-      // A 班：普通工作日
+      // 5) A 班：普通工作日
       aDayCount++;
-      // 不加班判断：日期命中 或 周几命中（取并集，仅影响 A 班日）
-      if (
-        noOvertimeDateSet.has(d.date()) ||
-        noOvertimeWeekdaySet.has(d.day())
-      ) {
+      if (noOvertimeDateSet.has(dom) || noOvertimeWeekdaySet.has(d.day()))
         noOvertimeCount++;
-      }
     }
   }
 
