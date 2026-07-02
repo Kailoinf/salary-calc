@@ -243,6 +243,73 @@ function readRestdayWeekdays(months: YearMonth[]): number | number[] {
   return months.map((mm) => getRestdayFor(mm.year, mm.month));
 }
 
+/* ============================================================
+ * 多月班次管理（自动轮换 / 每月自定义）
+ * ========================================================== */
+
+type ShiftMode = "flip" | "individual";
+let shiftMode: ShiftMode = "flip";
+
+/** key: "year-month"，value: ShiftType */
+const shiftMap = new Map<string, ShiftType>();
+
+function getShiftFor(y: number, m: number): ShiftType {
+  return shiftMap.get(restKey(y, m)) ?? "day";
+}
+function setShiftFor(y: number, m: number, v: ShiftType): void {
+  shiftMap.set(restKey(y, m), v);
+}
+
+function shiftOptions(selected: ShiftType): string {
+  return `<option value="day"${selected === "day" ? " selected" : ""}>白班</option>
+<option value="night"${selected === "night" ? " selected" : ""}>夜班</option>`;
+}
+
+function ensureShiftInputs(months: YearMonth[]): void {
+  const container = getById("multi-shift-inputs");
+  const sig = shiftMode + "|" + months.map((mm) => restKey(mm.year, mm.month)).join(",");
+  if (container.dataset.sig === sig) return;
+  container.dataset.sig = sig;
+
+  if (shiftMode === "flip") {
+    const first = months.length > 0 ? getShiftFor(months[0].year, months[0].month) : "day";
+    container.innerHTML = `<label>起始班次
+      <select id="multi-shift-flip">${shiftOptions(first)}</select>
+      <span class="hint">（之后每月自动翻转）</span></label>`;
+    getById<HTMLSelectElement>("multi-shift-flip").addEventListener("change", () => {
+      // 翻转模式只需存第一个月，calcMultiMonth 自动 flip
+      if (months.length > 0) {
+        const sel = getById<HTMLSelectElement>("multi-shift-flip");
+        setShiftFor(months[0].year, months[0].month, sel.value as ShiftType);
+      }
+      recalcMulti();
+    });
+  } else {
+    const items = months
+      .map((mm) =>
+        `<label>${mm.year}年${mm.month}月 <select class="shift-individual" data-shift-key="${restKey(mm.year, mm.month)}">${shiftOptions(getShiftFor(mm.year, mm.month))}</select></label>`,
+      )
+      .join("");
+    container.innerHTML = `<div class="individual-restday">${items}</div>`;
+    container.querySelectorAll<HTMLSelectElement>(".shift-individual").forEach((sel) => {
+      sel.addEventListener("change", () => {
+        const key = sel.dataset.shiftKey ?? "";
+        const parts = key.split("-");
+        setShiftFor(Number(parts[0]), Number(parts[1]), sel.value as ShiftType);
+        recalcMulti();
+      });
+    });
+  }
+}
+
+function readShiftTypes(months: YearMonth[]): ShiftType | ShiftType[] {
+  if (shiftMode === "flip") {
+    const el = document.getElementById("multi-shift-flip") as HTMLSelectElement | null;
+    return (el?.value as ShiftType) ?? "day";
+  }
+  return months.map((mm) => getShiftFor(mm.year, mm.month));
+}
+
 /** 读取单月 C 班周几 select 的值 */
 function readRestDayWeekday(id: string): number {
   const el = getById<HTMLSelectElement>(id);
@@ -499,10 +566,11 @@ function recalcMulti(): void {
   const end = readMonth("multi-end", 2026, 12);
   const months = enumerateMonths(start, end);
   ensureRestdayWeekdayInputs(months);
+  ensureShiftInputs(months);
   const restDayWeekday = readRestdayWeekdays(months);
+  const shiftType = readShiftTypes(months);
   const noOvertimeWeekdays = readNoOvertimeWeekdays("multi-noot-weekdays");
   const config = readConfig("multi");
-  const shiftType = readShiftType("multi-shift");
   const bDayHours = readBDayHours("multi-bday-hours");
   lastMulti = calcMultiMonth(
     start.year,
@@ -660,10 +728,21 @@ function init(): void {
   document
     .querySelectorAll<HTMLInputElement>("#multi-noot-weekdays input")
     .forEach((cb) => cb.addEventListener("change", recalcMulti));
-  // 多月：班次切换
-  getById<HTMLSelectElement>("multi-shift").addEventListener("change", recalcMulti);
   // 多月：B班工时
   getById<HTMLSelectElement>("multi-bday-hours").addEventListener("change", recalcMulti);
+
+  // 班次模式切换
+  document
+    .querySelectorAll<HTMLInputElement>('input[name="shift-mode"]')
+    .forEach((radio) => {
+      radio.addEventListener("change", () => {
+        const checked = document.querySelector<HTMLInputElement>(
+          'input[name="shift-mode"]:checked',
+        );
+        shiftMode = (checked?.value as ShiftMode) ?? "flip";
+        recalcMulti();
+      });
+    });
 
   // 休息日模式切换
   document
