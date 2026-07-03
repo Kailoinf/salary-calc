@@ -2,7 +2,7 @@
 
 /** 基础薪资配置 */
 export interface SalaryConfig {
-  baseSalary: number; // 底薪，默认 2800
+  baseSalary: number; // 底薪，默认 3350
   positionPay: number; // 岗位工资，默认 200
   fullAttendanceBonus: number; // 全勤奖，默认 150
   performancePay: number; // 绩效工资，默认 200

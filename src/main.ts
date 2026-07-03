@@ -126,7 +126,7 @@ function readMonth(
 /** 读取基础薪资配置 */
 function readConfig(prefix: "single" | "multi"): SalaryConfig {
   return {
-    baseSalary: validateNumber(`${prefix}-base`, salarySchema, 2800),
+    baseSalary: validateNumber(`${prefix}-base`, salarySchema, 3350),
     positionPay: validateNumber(`${prefix}-position`, salarySchema, 200),
     fullAttendanceBonus: validateNumber(
       `${prefix}-attendance`,
@@ -505,6 +505,47 @@ function onSettingsInput(): void {
 }
 
 /* ============================================================
+ * 薪资构成（底薪/岗位/全勤/绩效）：单月/多月/设置三处双向同步 + 持久化
+ * ========================================================== */
+
+/** 每个 key 对应一组共享同一值的输入框（单月/多月/设置三处入口） */
+const SALARY_FIELDS: { key: keyof UserSettings; ids: string[] }[] = [
+  { key: "baseSalary", ids: ["single-base", "multi-base", "settings-salary-base"] },
+  { key: "positionSalary", ids: ["single-position", "multi-position", "settings-salary-position"] },
+  { key: "attendanceBonus", ids: ["single-attendance", "multi-attendance", "settings-salary-attendance"] },
+  { key: "performanceSalary", ids: ["single-performance", "multi-performance", "settings-salary-performance"] },
+];
+
+/** 把薪资设置写到三处表单（程序赋值不触发 input 事件，无循环风险） */
+function applySalaryToForms(s: UserSettings): void {
+  SALARY_FIELDS.forEach((f) => {
+    f.ids.forEach((id) => {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (el) el.value = String(s[f.key]);
+    });
+  });
+}
+
+/** 薪资输入变更：同步同组其余输入框 + 持久化 + 重算。空值/非法值仅重算，不覆盖本地存储。 */
+function onSalaryInput(key: keyof UserSettings, srcId: string): void {
+  const srcEl = document.getElementById(srcId) as HTMLInputElement;
+  const raw = srcEl.value.trim();
+  const v = Number(raw);
+  if (raw !== "" && Number.isFinite(v)) {
+    SALARY_FIELDS.find((f) => f.key === key)!.ids.forEach((id) => {
+      if (id === srcId) return;
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (el) el.value = raw;
+    });
+    const s = loadSettings();
+    s[key] = v;
+    saveSettings(s);
+  }
+  recalcSingle();
+  recalcMulti();
+}
+
+/* ============================================================
  * 渲染
  * ========================================================== */
 
@@ -786,37 +827,32 @@ function setupTabs(): void {
  * 事件绑定 / 初始化
  * ========================================================== */
 
-const SINGLE_INPUTS = [
-  "single-year",
-  "single-month",
-  "single-base",
-  "single-position",
-  "single-attendance",
-  "single-performance",
-];
+const SINGLE_INPUTS = ["single-year", "single-month"];
 
-const MULTI_INPUTS = [
-  "multi-start",
-  "multi-end",
-  "multi-base",
-  "multi-position",
-  "multi-attendance",
-  "multi-performance",
-];
+const MULTI_INPUTS = ["multi-start", "multi-end"];
 
 function init(): void {
   // 设置：先加载并应用，再渲染表单 + 绑定即时保存
   const initialSettings = loadSettings();
   setCurrentSettings(initialSettings);
   applySettingsToForm(initialSettings);
+  applySalaryToForms(initialSettings);
   SETTINGS_FIELDS.forEach((f) => {
     const el = document.getElementById(f.id) as HTMLInputElement | null;
     if (el) el.addEventListener("input", onSettingsInput);
+  });
+  // 薪资构成：三处表单双向同步 + 持久化
+  SALARY_FIELDS.forEach((f) => {
+    f.ids.forEach((id) => {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (el) el.addEventListener("input", () => onSalaryInput(f.key, id));
+    });
   });
   getById<HTMLButtonElement>("settings-reset").addEventListener("click", () => {
     const s = resetSettings();
     setCurrentSettings(s);
     applySettingsToForm(s);
+    applySalaryToForms(s);
     recalcSingle();
     recalcMulti();
   });
