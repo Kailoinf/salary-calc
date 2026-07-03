@@ -4,7 +4,7 @@
 
 /** 基础薪资配置 */
 export interface SalaryConfig {
-  baseSalary: number; // 底薪，分，默认 3350 元 = 335000
+  baseSalary: number; // 底薪，分，默认 2800 元 = 280000
   positionPay: number; // 岗位工资，分，默认 200 元 = 20000
   fullAttendanceBonus: number; // 全勤奖，分，默认 150 元 = 15000
   performancePay: number; // 绩效工资，分，默认 200 元 = 20000

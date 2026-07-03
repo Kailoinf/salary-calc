@@ -129,7 +129,7 @@ function readMonth(
 /** 读取基础薪资配置（表单以元输入，转分存储） */
 function readConfig(prefix: "single" | "multi"): SalaryConfig {
   return {
-    baseSalary: yuanToCents(validateNumber(`${prefix}-base`, salarySchema, 3350)),
+    baseSalary: yuanToCents(validateNumber(`${prefix}-base`, salarySchema, 2800)),
     positionPay: yuanToCents(validateNumber(`${prefix}-position`, salarySchema, 200)),
     fullAttendanceBonus: yuanToCents(
       validateNumber(`${prefix}-attendance`, salarySchema, 150),

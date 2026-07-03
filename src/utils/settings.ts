@@ -3,7 +3,7 @@
 
 /** 用户设置：11 个可配置参数（薪资构成 4 + 社保个税 7） */
 export interface UserSettings {
-  baseSalary: number; // 底薪，分，默认 3350 元 = 335000
+  baseSalary: number; // 底薪，分，默认 2800 元 = 280000
   positionSalary: number; // 岗位工资，分，默认 200 元 = 20000
   attendanceBonus: number; // 全勤奖，分，默认 150 元 = 15000
   performanceSalary: number; // 绩效工资，分，默认 200 元 = 20000
@@ -17,7 +17,7 @@ export interface UserSettings {
 }
 
 export const DEFAULT_SETTINGS: UserSettings = {
-  baseSalary: 335000,
+  baseSalary: 280000,
   positionSalary: 20000,
   attendanceBonus: 15000,
   performanceSalary: 20000,
