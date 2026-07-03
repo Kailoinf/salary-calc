@@ -1,11 +1,13 @@
 // 全部 TS 类型定义（strict 模式，禁止 any）
 
+// 金额字段单位均为「分」（1 元 = 100 分），整数存储以避免浮点误差；比例字段为无量纲小数。
+
 /** 基础薪资配置 */
 export interface SalaryConfig {
-  baseSalary: number; // 底薪，默认 3350
-  positionPay: number; // 岗位工资，默认 200
-  fullAttendanceBonus: number; // 全勤奖，默认 150
-  performancePay: number; // 绩效工资，默认 200
+  baseSalary: number; // 底薪，分，默认 3350 元 = 335000
+  positionPay: number; // 岗位工资，分，默认 200 元 = 20000
+  fullAttendanceBonus: number; // 全勤奖，分，默认 150 元 = 15000
+  performancePay: number; // 绩效工资，分，默认 200 元 = 20000
 }
 
 /** 社保参数（固定值，不可修改） */
@@ -13,8 +15,8 @@ export interface SocialInsurance {
   pensionRate: number; // 养老 0.08
   medicalRate: number; // 医疗 0.02
   unemploymentRate: number; // 失业 0.003
-  fixedDeduction: number; // 大额医保 + 长护险 14.95
-  base: number; // 社保基数 4299
+  fixedDeduction: number; // 大额医保 + 长护险，分，14.95 元 = 1495
+  base: number; // 社保基数，分，4299 元 = 429900
 }
 
 /** 排班类型 */
@@ -46,19 +48,19 @@ export interface MonthlyResult {
   noOvertimeCount: number; // A 班日中"不加班"的天数
   holidayDays: number; // 法定节假日出勤天数（= fDayCount）
   nightShiftDays: number; // 夜班出勤天数
-  // 收入明细
+  // 收入明细（均为分）
   fixedTotal: number; // 固定薪资合计
   weekdayOvertime: number; // A 班加班费（加班 3h × 1.5 倍）
   tuesdayDoublePay: number; // B 班双倍（全天 11h × 2 倍）
   holidayExtra: number; // F班节假日加班（全天 11h × 3 倍）
   nightSubsidy: number; // 夜班补贴
   grossPay: number; // 税前总工资
-  // 扣款明细
+  // 扣款明细（均为分）
   socialInsurance: {
     pension: number;
     medical: number;
     unemployment: number;
-    fixed: number; // 大额长护 14.95
+    fixed: number; // 大额长护，1495
     total: number;
   };
   tax: number; // 个税
@@ -66,10 +68,10 @@ export interface MonthlyResult {
   // 元数据
   shiftType: ShiftType;
   bDay8hCount: number;   // B班中只上8h的天数
-  baseHourlyRate: number; // 基础时薪
+  baseHourlyRate: number; // 基础时薪，分/小时
 }
 
-/** 多月汇总 */
+/** 多月汇总（金额字段均为分） */
 export interface MultiMonthSummary {
   results: MonthlyResult[];
   totalGross: number;

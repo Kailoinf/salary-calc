@@ -45,15 +45,15 @@ export let TAX_RATE = DEFAULT_SETTINGS.taxRate; // 个税税率
 export const STANDARD_WORK_DAYS = 21.75;
 export const STANDARD_WORK_HOURS = 8;
 
-/** 金额按分（两位小数）四舍五入，避免浮点误差 */
-const round2 = (n: number): number => Math.round(n * 100) / 100;
+// 金额一律以「分」参与运算；涉及比例/除法产生小数时，最终结果用 Math.round 取整为分。
+// 比例类（养老/医疗/失业/税率）保持小数不变，整数 × 小数 仍在分域。
 
-/** 基础时薪 = 底薪 / 21.75 / 8 */
+/** 基础时薪 = 底薪 / 21.75 / 8（底薪为分，结果亦为分，可能含小数） */
 export function calcBaseHourlyRate(baseSalary: number): number {
   return baseSalary / STANDARD_WORK_DAYS / STANDARD_WORK_HOURS;
 }
 
-/** 按社保基数 × 比例计算各项 + 固定 14.95 */
+/** 按社保基数(分) × 比例计算各项 + 固定扣款；各项结果均为分 */
 export function calcSocialInsurance(): {
   pension: number;
   medical: number;
@@ -61,24 +61,24 @@ export function calcSocialInsurance(): {
   fixed: number;
   total: number;
 } {
-  const pension = round2(SOCIAL_INSURANCE.base * SOCIAL_INSURANCE.pensionRate);
-  const medical = round2(SOCIAL_INSURANCE.base * SOCIAL_INSURANCE.medicalRate);
-  const unemployment = round2(
+  const pension = Math.round(SOCIAL_INSURANCE.base * SOCIAL_INSURANCE.pensionRate);
+  const medical = Math.round(SOCIAL_INSURANCE.base * SOCIAL_INSURANCE.medicalRate);
+  const unemployment = Math.round(
     SOCIAL_INSURANCE.base * SOCIAL_INSURANCE.unemploymentRate,
   );
-  const fixed = round2(SOCIAL_INSURANCE.fixedDeduction);
-  const total = round2(pension + medical + unemployment + fixed);
+  const fixed = SOCIAL_INSURANCE.fixedDeduction;
+  const total = pension + medical + unemployment + fixed;
   return { pension, medical, unemployment, fixed, total };
 }
 
 /**
- * 个税：计税基数 = 税前工资 - 起征点 - 社保；
- * 计税基数 ≤ 0 时免征，否则 × 3%。
+ * 个税：计税基数 = 税前工资 - 起征点 - 社保（均为分）；
+ * 计税基数 ≤ 0 时免征，否则 × 税率，结果取整为分。
  */
 export function calcTax(grossPay: number, socialTotal: number): number {
   const taxable = grossPay - TAX_THRESHOLD - socialTotal;
   if (taxable <= 0) return 0;
-  return round2(taxable * TAX_RATE);
+  return Math.round(taxable * TAX_RATE);
 }
 
 /** 月度薪资计算 */
@@ -97,10 +97,10 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     noOvertimeWeekdays,
   );
 
-  // b. 基础时薪
+  // b. 基础时薪（分/小时，含小数）
   const baseHourlyRate = calcBaseHourlyRate(config.baseSalary);
 
-  // c. 固定薪资合计
+  // c. 固定薪资合计（各项均为分，求和即分）
   const fixedTotal =
     config.baseSalary +
     config.positionPay +
@@ -108,25 +108,25 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     config.performancePay;
 
   // d. A 班加班费：加班 3h × 1.5 倍（不加班的 A 班日不计）
-  const weekdayOvertime = round2(
+  const weekdayOvertime = Math.round(
     (stats.aDayCount - stats.noOvertimeCount) * 3 * 1.5 * baseHourlyRate,
   );
 
   // e. B 班双倍加班费：默认11h×2，勾选8h的B班日按8h×2
   const bDay8hCount = bDay8hDates.length;
-  const tuesdayDoublePay = round2(
+  const tuesdayDoublePay = Math.round(
     (stats.bDayCount - bDay8hCount) * 11 * 2 * baseHourlyRate +
     bDay8hCount * 8 * 2 * baseHourlyRate,
   );
 
   // f. F 班节假日（全天 11h × 3 倍）
-  const holidayExtra = round2(stats.fDayCount * 11 * 3 * baseHourlyRate);
+  const holidayExtra = Math.round(stats.fDayCount * 11 * 3 * baseHourlyRate);
 
-  // g. 夜班补贴：逐日判定，20元/夜班出勤日
-  const nightSubsidy = round2(20 * stats.nightShiftDays);
+  // g. 夜班补贴：逐日判定，20元(=2000分)/夜班出勤日
+  const nightSubsidy = Math.round(2000 * stats.nightShiftDays);
 
   // h. 税前总工资
-  const grossPay = round2(
+  const grossPay = Math.round(
     fixedTotal + weekdayOvertime + tuesdayDoublePay + holidayExtra + nightSubsidy,
   );
 
@@ -135,7 +135,7 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
   // j. 个税
   const tax = calcTax(grossPay, socialInsurance.total);
   // k. 到手工资
-  const netPay = round2(grossPay - socialInsurance.total - tax);
+  const netPay = Math.round(grossPay - socialInsurance.total - tax);
 
   return {
     year,
@@ -148,7 +148,7 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     noOvertimeCount: stats.noOvertimeCount,
     holidayDays: stats.holidayDays.length,
     nightShiftDays: stats.nightShiftDays,
-    fixedTotal: round2(fixedTotal),
+    fixedTotal,
     weekdayOvertime,
     tuesdayDoublePay,
     holidayExtra,
@@ -159,7 +159,7 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     netPay,
     shiftType,
     bDay8hCount,
-    baseHourlyRate: round2(baseHourlyRate),
+    baseHourlyRate: Math.round(baseHourlyRate),
   };
 }
 
@@ -230,14 +230,11 @@ export function calcMultiMonth(
     index++;
   }
 
-  const totalGross = round2(results.reduce((sum, r) => sum + r.grossPay, 0));
-  const totalSocial = round2(
-    results.reduce((sum, r) => sum + r.socialInsurance.total, 0),
-  );
-  const totalTax = round2(results.reduce((sum, r) => sum + r.tax, 0));
-  const totalNet = round2(results.reduce((sum, r) => sum + r.netPay, 0));
-  const averageNet =
-    results.length > 0 ? round2(totalNet / results.length) : 0;
+  const totalGross = results.reduce((sum, r) => sum + r.grossPay, 0);
+  const totalSocial = results.reduce((sum, r) => sum + r.socialInsurance.total, 0);
+  const totalTax = results.reduce((sum, r) => sum + r.tax, 0);
+  const totalNet = results.reduce((sum, r) => sum + r.netPay, 0);
+  const averageNet = results.length > 0 ? Math.round(totalNet / results.length) : 0;
 
   return { results, totalGross, totalSocial, totalTax, totalNet, averageNet };
 }

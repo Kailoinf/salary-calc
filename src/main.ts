@@ -47,9 +47,12 @@ function errorSpanOf(el: HTMLInputElement): HTMLSpanElement {
   return span;
 }
 
-/** 金额格式化：两位小数 + 千分位 */
-function fmt(n: number): string {
-  return n.toLocaleString("zh-CN", {
+/** 元 → 分（用户输入转内部整数存储，消除浮点误差） */
+const yuanToCents = (yuan: number): number => Math.round(yuan * 100);
+
+/** 金额格式化：入参为「分」，输出两位小数 + 千分位的「元」 */
+function fmt(cents: number): string {
+  return (cents / 100).toLocaleString("zh-CN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -123,17 +126,15 @@ function readMonth(
   return { year: fy, month: fm };
 }
 
-/** 读取基础薪资配置 */
+/** 读取基础薪资配置（表单以元输入，转分存储） */
 function readConfig(prefix: "single" | "multi"): SalaryConfig {
   return {
-    baseSalary: validateNumber(`${prefix}-base`, salarySchema, 3350),
-    positionPay: validateNumber(`${prefix}-position`, salarySchema, 200),
-    fullAttendanceBonus: validateNumber(
-      `${prefix}-attendance`,
-      salarySchema,
-      150,
+    baseSalary: yuanToCents(validateNumber(`${prefix}-base`, salarySchema, 3350)),
+    positionPay: yuanToCents(validateNumber(`${prefix}-position`, salarySchema, 200)),
+    fullAttendanceBonus: yuanToCents(
+      validateNumber(`${prefix}-attendance`, salarySchema, 150),
     ),
-    performancePay: validateNumber(`${prefix}-performance`, salarySchema, 200),
+    performancePay: yuanToCents(validateNumber(`${prefix}-performance`, salarySchema, 200)),
   };
 }
 
@@ -464,34 +465,34 @@ function ensureBDay8hDates(
  * 设置（社保 + 个税参数，localStorage 持久化）
  * ========================================================== */
 
-/** 设置表单字段：input id ↔ UserSettings 字段 */
-const SETTINGS_FIELDS: { id: string; key: keyof UserSettings }[] = [
-  { id: "settings-base", key: "socialBase" },
+/** 设置表单字段：input id ↔ UserSettings 字段；money=true 表示金额(元↔分)需换算 */
+const SETTINGS_FIELDS: { id: string; key: keyof UserSettings; money?: boolean }[] = [
+  { id: "settings-base", key: "socialBase", money: true },
   { id: "settings-pension", key: "pensionRate" },
   { id: "settings-medical", key: "medicalRate" },
   { id: "settings-unemployment", key: "unemploymentRate" },
-  { id: "settings-fixed", key: "fixedDeduction" },
-  { id: "settings-threshold", key: "taxThreshold" },
+  { id: "settings-fixed", key: "fixedDeduction", money: true },
+  { id: "settings-threshold", key: "taxThreshold", money: true },
   { id: "settings-rate", key: "taxRate" },
 ];
 
-/** 从表单读取设置（无效输入回落默认值） */
+/** 从表单读取设置（金额字段元→分；无效输入回落默认值） */
 function readSettingsForm(): UserSettings {
   const s = { ...DEFAULT_SETTINGS };
   for (const f of SETTINGS_FIELDS) {
     const el = document.getElementById(f.id) as HTMLInputElement | null;
     if (!el) continue;
     const v = Number(el.value);
-    if (Number.isFinite(v)) s[f.key] = v;
+    if (Number.isFinite(v)) s[f.key] = f.money ? yuanToCents(v) : v;
   }
   return s;
 }
 
-/** 把设置写回表单输入框 */
+/** 把设置写回表单输入框（金额字段分→元显示） */
 function applySettingsToForm(s: UserSettings): void {
   for (const f of SETTINGS_FIELDS) {
     const el = document.getElementById(f.id) as HTMLInputElement | null;
-    if (el) el.value = String(s[f.key]);
+    if (el) el.value = String(f.money ? s[f.key] / 100 : s[f.key]);
   }
 }
 
@@ -516,12 +517,12 @@ const SALARY_FIELDS: { key: keyof UserSettings; ids: string[] }[] = [
   { key: "performanceSalary", ids: ["single-performance", "multi-performance", "settings-salary-performance"] },
 ];
 
-/** 把薪资设置写到三处表单（程序赋值不触发 input 事件，无循环风险） */
+/** 把薪资设置写到三处表单（分→元显示；程序赋值不触发 input 事件，无循环风险） */
 function applySalaryToForms(s: UserSettings): void {
   SALARY_FIELDS.forEach((f) => {
     f.ids.forEach((id) => {
       const el = document.getElementById(id) as HTMLInputElement | null;
-      if (el) el.value = String(s[f.key]);
+      if (el) el.value = String(s[f.key] / 100);
     });
   });
 }
@@ -538,7 +539,7 @@ function onSalaryInput(key: keyof UserSettings, srcId: string): void {
       if (el) el.value = raw;
     });
     const s = loadSettings();
-    s[key] = v;
+    s[key] = yuanToCents(v);
     saveSettings(s);
   }
   recalcSingle();
