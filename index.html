@@ -17,6 +17,7 @@
       <nav class="tabs">
         <button class="tab active" data-tab="single">单月计算</button>
         <button class="tab" data-tab="multi">多月批量</button>
+        <button class="tab" data-tab="settings">⚙️ 设置</button>
       </nav>
 
       <!-- ====== 模块1: 单月工资计算 ====== -->
@@ -140,9 +141,33 @@
         <button id="multi-copy" class="btn-copy" style="display:none">📋 复制汇总文本</button>
       </section>
 
+      <!-- ====== 模块3: 设置 ====== -->
+      <section id="tab-settings" class="tab-content">
+        <div class="card">
+          <h2>⚙️ 社保参数</h2>
+          <p class="hint">修改后自动保存到本地并即时生效；点击「恢复默认」可还原。</p>
+          <div class="form-row">
+            <label>社保基数 <input type="number" id="settings-base" min="0" step="1"></label>
+            <label>养老比例 <input type="number" id="settings-pension" min="0" max="1" step="0.001"></label>
+            <label>医疗比例 <input type="number" id="settings-medical" min="0" max="1" step="0.001"></label>
+            <label>失业比例 <input type="number" id="settings-unemployment" min="0" max="1" step="0.001"></label>
+            <label>大额+长护 <input type="number" id="settings-fixed" min="0" step="0.01"></label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🧾 个税参数</h2>
+          <div class="form-row">
+            <label>个税起征点 <input type="number" id="settings-threshold" min="0" step="100"></label>
+            <label>个税税率 <input type="number" id="settings-rate" min="0" max="1" step="0.001"></label>
+          </div>
+          <button id="settings-reset" class="btn-copy">↩️ 恢复默认</button>
+        </div>
+      </section>
+
       <!-- 社保参数说明 -->
       <footer class="info-box">
-        <p>📌 社保参数（不可修改）：基数 4299 | 养老8% | 医疗2% | 失业0.3% | 大额+长护 14.95/月</p>
+        <p>📌 社保参数（可在「⚙️ 设置」调整）：基数 4299 | 养老8% | 医疗2% | 失业0.3% | 大额+长护 14.95/月</p>
         <p>📌 个税：起征点 5000，税率 3%，无专项附加扣除</p>
       </footer>
     </div>

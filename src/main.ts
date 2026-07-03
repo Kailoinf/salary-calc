@@ -1,5 +1,12 @@
 import type { SalaryConfig, MonthlyResult, MultiMonthSummary, ShiftType } from "./types";
-import { calcMonthlySalary, calcMultiMonth } from "./utils/salary";
+import { calcMonthlySalary, calcMultiMonth, setCurrentSettings } from "./utils/salary";
+import {
+  loadSettings,
+  saveSettings,
+  resetSettings,
+  DEFAULT_SETTINGS,
+  type UserSettings,
+} from "./utils/settings";
 import { getADayDates, getBDayDates } from "./utils/date";
 import { z } from "zod";
 
@@ -454,6 +461,50 @@ function ensureBDay8hDates(
 }
 
 /* ============================================================
+ * 设置（社保 + 个税参数，localStorage 持久化）
+ * ========================================================== */
+
+/** 设置表单字段：input id ↔ UserSettings 字段 */
+const SETTINGS_FIELDS: { id: string; key: keyof UserSettings }[] = [
+  { id: "settings-base", key: "socialBase" },
+  { id: "settings-pension", key: "pensionRate" },
+  { id: "settings-medical", key: "medicalRate" },
+  { id: "settings-unemployment", key: "unemploymentRate" },
+  { id: "settings-fixed", key: "fixedDeduction" },
+  { id: "settings-threshold", key: "taxThreshold" },
+  { id: "settings-rate", key: "taxRate" },
+];
+
+/** 从表单读取设置（无效输入回落默认值） */
+function readSettingsForm(): UserSettings {
+  const s = { ...DEFAULT_SETTINGS };
+  for (const f of SETTINGS_FIELDS) {
+    const el = document.getElementById(f.id) as HTMLInputElement | null;
+    if (!el) continue;
+    const v = Number(el.value);
+    if (Number.isFinite(v)) s[f.key] = v;
+  }
+  return s;
+}
+
+/** 把设置写回表单输入框 */
+function applySettingsToForm(s: UserSettings): void {
+  for (const f of SETTINGS_FIELDS) {
+    const el = document.getElementById(f.id) as HTMLInputElement | null;
+    if (el) el.value = String(s[f.key]);
+  }
+}
+
+/** 设置变更：保存 + 应用 + 重算 */
+function onSettingsInput(): void {
+  const s = readSettingsForm();
+  saveSettings(s);
+  setCurrentSettings(s);
+  recalcSingle();
+  recalcMulti();
+}
+
+/* ============================================================
  * 渲染
  * ========================================================== */
 
@@ -754,6 +805,22 @@ const MULTI_INPUTS = [
 ];
 
 function init(): void {
+  // 设置：先加载并应用，再渲染表单 + 绑定即时保存
+  const initialSettings = loadSettings();
+  setCurrentSettings(initialSettings);
+  applySettingsToForm(initialSettings);
+  SETTINGS_FIELDS.forEach((f) => {
+    const el = document.getElementById(f.id) as HTMLInputElement | null;
+    if (el) el.addEventListener("input", onSettingsInput);
+  });
+  getById<HTMLButtonElement>("settings-reset").addEventListener("click", () => {
+    const s = resetSettings();
+    setCurrentSettings(s);
+    applySettingsToForm(s);
+    recalcSingle();
+    recalcMulti();
+  });
+
   // 单月：实时计算
   SINGLE_INPUTS.forEach((id) => {
     getById<HTMLInputElement>(id).addEventListener("input", recalcSingle);

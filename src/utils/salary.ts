@@ -7,18 +7,40 @@ import type {
   ShiftType,
 } from "../types";
 import { getWorkDaysInMonth } from "./date";
+import { DEFAULT_SETTINGS, type UserSettings } from "./settings";
 
-/** 社保参数（固定值） */
+/** 当前生效的设置（社保 + 个税），由 main.ts 在启动/修改时写入 */
+let currentSettings: UserSettings = { ...DEFAULT_SETTINGS };
+export function getCurrentSettings(): UserSettings {
+  return currentSettings;
+}
+export function setCurrentSettings(s: UserSettings): void {
+  currentSettings = { ...s };
+  TAX_THRESHOLD = s.taxThreshold;
+  TAX_RATE = s.taxRate;
+}
+
+/** 社保参数：getter 动态读取当前设置 */
 export const SOCIAL_INSURANCE: SocialInsurance = {
-  pensionRate: 0.08,
-  medicalRate: 0.02,
-  unemploymentRate: 0.003,
-  fixedDeduction: 14.95,
-  base: 4299,
+  get base() {
+    return currentSettings.socialBase;
+  },
+  get pensionRate() {
+    return currentSettings.pensionRate;
+  },
+  get medicalRate() {
+    return currentSettings.medicalRate;
+  },
+  get unemploymentRate() {
+    return currentSettings.unemploymentRate;
+  },
+  get fixedDeduction() {
+    return currentSettings.fixedDeduction;
+  },
 };
 
-export const TAX_THRESHOLD = 5000; // 个税起征点
-export const TAX_RATE = 0.03; // 税率 3%
+export let TAX_THRESHOLD = DEFAULT_SETTINGS.taxThreshold; // 个税起征点
+export let TAX_RATE = DEFAULT_SETTINGS.taxRate; // 个税税率
 
 export const STANDARD_WORK_DAYS = 21.75;
 export const STANDARD_WORK_HOURS = 8;
