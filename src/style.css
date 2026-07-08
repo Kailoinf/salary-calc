@@ -51,11 +51,6 @@ h2 {
   margin-bottom: 12px;
 }
 
-.subtitle {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
 /* ===== Tab 切换 ===== */
 .tabs {
   display: flex;
@@ -274,21 +269,6 @@ table.result-table {
 
 .summary-box .summary-val {
   font-weight: 700;
-}
-
-/* ===== 参数说明 ===== */
-.info-box {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
-  padding: 12px;
-  margin-top: 24px;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-.info-box p + p {
-  margin-top: 4px;
 }
 
 /* ===== 分页 ===== */

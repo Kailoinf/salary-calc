@@ -10,7 +10,6 @@
     <div class="container">
       <header>
         <h1>💰 工资计算器</h1>
-        <p class="subtitle">宜昌社保 · 个税3% · 排班轮换</p>
       </header>
 
       <!-- Tab 切换 -->
@@ -48,9 +47,8 @@
         </div>
 
         <div class="card no-ot-section">
-          <h2>🚫 不加班 & B班8h</h2>
-          <p class="hint">A班不加班 = 当日仅8h不计3h加班。B班默认11h，勾选=该B班日仅上8h（仍2倍）。</p>
-          <h3>按周几（勾选 = 该周几的 A 班日不加班）</h3>
+          <h2>🚫 不加班</h2>
+          <h3>按周几</h3>
           <div class="checkbox-row" id="single-noot-weekdays">
             <label><input type="checkbox" value="0"> 周日</label>
             <label><input type="checkbox" value="1"> 周一</label>
@@ -60,9 +58,9 @@
             <label><input type="checkbox" value="5"> 周五</label>
             <label><input type="checkbox" value="6"> 周六</label>
           </div>
-          <h3>按日期（默认全勾=加班，取消勾=不加班）</h3>
+          <h3>按日期</h3>
           <div id="single-noot-dates"></div>
-          <h3>B班仅8h（默认全不勾=11h，勾选=该B班日只上8h）</h3>
+          <h3>B班仅8h</h3>
           <div id="single-bday8h-dates"></div>
         </div>
 
@@ -118,7 +116,7 @@
           </div>
           <div id="multi-shift-inputs" style="margin-top:8px"></div>
           <div class="no-ot-section">
-            <h3>不加班周几（勾选 = 该周几的 A 班日不加班，所有月份统一）</h3>
+            <h3>不加班周几</h3>
             <div class="checkbox-row" id="multi-noot-weekdays">
               <label><input type="checkbox" value="0"> 周日</label>
               <label><input type="checkbox" value="1"> 周一</label>
@@ -128,7 +126,6 @@
               <label><input type="checkbox" value="5"> 周五</label>
               <label><input type="checkbox" value="6"> 周六</label>
             </div>
-            <p class="hint">多月模式不支持按日期不加班（按日期仅在单月模块可用）。</p>
           </div>
         </div>
 
@@ -145,7 +142,6 @@
       <section id="tab-settings" class="tab-content">
         <div class="card">
           <h2>💰 薪资构成</h2>
-          <p class="hint">修改后自动保存到本地、同步到单月/多月表单并即时生效；点击「恢复默认」可还原。</p>
           <div class="form-row">
             <label>底薪 <input type="number" id="settings-salary-base" min="0" step="100"></label>
             <label>岗位工资 <input type="number" id="settings-salary-position" min="0" step="10"></label>
@@ -171,11 +167,6 @@
         </div>
       </section>
 
-      <!-- 社保参数说明 -->
-      <footer class="info-box">
-        <p>📌 社保参数（可在「⚙️ 设置」调整）：基数 4299 | 养老8% | 医疗2% | 失业0.3% | 大额+长护 14.95/月</p>
-        <p>📌 个税：起征点 5000，税率 3%，无专项附加扣除</p>
-      </footer>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
