@@ -8,6 +8,10 @@
   --text-secondary: #6b7280;
   --border: #e5e7eb;
   --accent: #3b82f6;
+  --accent-light: rgba(59, 130, 246, 0.06);
+  --accent-ring: rgba(59, 130, 246, 0.1);
+  --summary-bg: #f0fdf4;
+  --summary-border: #bbf7d0;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -43,7 +47,6 @@ header {
 
 h1 {
   font-size: 1.8rem;
-  margin-bottom: 4px;
 }
 
 h2 {
@@ -131,7 +134,7 @@ select {
 input:focus,
 select:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 /* 输入框下方的错误提示 */
@@ -246,8 +249,8 @@ table.result-table {
 
 /* ===== 汇总框 ===== */
 .summary-box {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: var(--summary-bg);
+  border: 1px solid var(--summary-border);
   border-radius: 8px;
   padding: 16px;
   margin-top: 16px;
@@ -304,7 +307,20 @@ table.result-table {
 .restday-mode {
   display: flex;
   gap: 16px;
-  margin-bottom: 12px;
+  margin-top: 12px;
+}
+
+.restday-mode:first-of-type {
+  margin-top: 0;
+}
+
+.mode-label {
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+#multi-shift-inputs {
+  margin-top: 8px;
 }
 
 .restday-mode label {
@@ -398,6 +414,6 @@ table.result-table {
 
   .tab.active {
     border-bottom-color: var(--accent);
-    background: rgba(59, 130, 246, 0.06);
+    background: var(--accent-light);
   }
 }
