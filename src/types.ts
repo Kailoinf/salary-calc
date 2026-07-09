@@ -10,15 +10,6 @@ export interface SalaryConfig {
   performancePay: number; // 绩效工资，分，默认 200 元 = 20000
 }
 
-/** 社保参数（固定值，不可修改） */
-export interface SocialInsurance {
-  pensionRate: number; // 养老 0.08
-  medicalRate: number; // 医疗 0.02
-  unemploymentRate: number; // 失业 0.003
-  fixedDeduction: number; // 大额医保 + 长护险，分，14.95 元 = 1495
-  base: number; // 社保基数，分，4299 元 = 429900
-}
-
 /** 排班类型 */
 export type ShiftType = "day" | "night";
 
@@ -56,13 +47,7 @@ export interface MonthlyResult {
   nightSubsidy: number; // 夜班补贴
   grossPay: number; // 税前总工资
   // 扣款明细（均为分）
-  socialInsurance: {
-    pension: number;
-    medical: number;
-    unemployment: number;
-    fixed: number; // 大额长护，1495
-    total: number;
-  };
+  socialInsurance: number; // 社保扣款，分，固定 442.80 元
   tax: number; // 个税
   netPay: number; // 到手工资
   // 元数据

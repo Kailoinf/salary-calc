@@ -1,17 +1,12 @@
-// 用户可调参数（社保 + 个税），持久化到 localStorage
-// ⚠️ 金额字段单位为「分」（1 元 = 100 分），比例字段为无量纲小数
+// 用户可调参数，持久化到 localStorage
+// ⚠️ 金额字段单位为「分」（1 元 = 100 分）
 
-/** 用户设置：11 个可配置参数（薪资构成 4 + 社保个税 7） */
+/** 用户设置：薪资构成 4 + 个税 2 */
 export interface UserSettings {
   baseSalary: number; // 底薪，分，默认 2800 元 = 280000
   positionSalary: number; // 岗位工资，分，默认 200 元 = 20000
   attendanceBonus: number; // 全勤奖，分，默认 150 元 = 15000
   performanceSalary: number; // 绩效工资，分，默认 200 元 = 20000
-  socialBase: number; // 社保基数，分，默认 4299 元 = 429900
-  pensionRate: number; // 养老比例，默认 0.08
-  medicalRate: number; // 医疗比例，默认 0.02
-  unemploymentRate: number; // 失业比例，默认 0.003
-  fixedDeduction: number; // 大额+长护固定扣款，分，默认 14.95 元 = 1495
   taxThreshold: number; // 个税起征点，分，默认 5000 元 = 500000
   taxRate: number; // 个税税率，默认 0.03
 }
@@ -21,11 +16,6 @@ export const DEFAULT_SETTINGS: UserSettings = {
   positionSalary: 20000,
   attendanceBonus: 15000,
   performanceSalary: 20000,
-  socialBase: 415388,
-  pensionRate: 0.08,
-  medicalRate: 0.02,
-  unemploymentRate: 0.003,
-  fixedDeduction: 1495,
   taxThreshold: 500000,
   taxRate: 0.03,
 };

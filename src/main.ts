@@ -467,11 +467,6 @@ function ensureBDay8hDates(
 
 /** 设置表单字段：input id ↔ UserSettings 字段；money=true 表示金额(元↔分)需换算 */
 const SETTINGS_FIELDS: { id: string; key: keyof UserSettings; money?: boolean }[] = [
-  { id: "settings-base", key: "socialBase", money: true },
-  { id: "settings-pension", key: "pensionRate" },
-  { id: "settings-medical", key: "medicalRate" },
-  { id: "settings-unemployment", key: "unemploymentRate" },
-  { id: "settings-fixed", key: "fixedDeduction", money: true },
   { id: "settings-threshold", key: "taxThreshold", money: true },
   { id: "settings-rate", key: "taxRate" },
 ];
@@ -578,11 +573,8 @@ function renderSingleResult(r: MonthlyResult): void {
         <tr><td>F班节假日(11h×3倍)</td><td class="income" style="text-align:right">${fmt(r.holidayExtra)}</td></tr>
         <tr><td>夜班补贴</td><td class="income" style="text-align:right">${fmt(r.nightSubsidy)}</td></tr>
         <tr class="total-row"><td>税前总工资</td><td style="text-align:right">${fmt(r.grossPay)}</td></tr>
-        <tr><td>社保-养老(8%)</td><td class="deduction" style="text-align:right">-${fmt(r.socialInsurance.pension)}</td></tr>
-        <tr><td>社保-医疗(2%)</td><td class="deduction" style="text-align:right">-${fmt(r.socialInsurance.medical)}</td></tr>
-        <tr><td>社保-失业(0.3%)</td><td class="deduction" style="text-align:right">-${fmt(r.socialInsurance.unemployment)}</td></tr>
-        <tr><td>社保-大额+长护</td><td class="deduction" style="text-align:right">-${fmt(r.socialInsurance.fixed)}</td></tr>
-        <tr><td>个税(3%)</td><td class="deduction" style="text-align:right">-${fmt(r.tax)}</td></tr>
+        <tr><td>社保扣除</td><td class="deduction" style="text-align:right">-${fmt(r.socialInsurance)}</td></tr>
+        <tr><td>个税</td><td class="deduction" style="text-align:right">-${fmt(r.tax)}</td></tr>
       </tbody>
     </table>
     <div class="net-pay-wrap">
@@ -623,7 +615,7 @@ function renderMultiResult(s: MultiMonthSummary): void {
         <td style="text-align:center">${r.fDayCount}</td>
         <td style="text-align:center">${SHIFT_LABEL(r)}</td>
         <td style="text-align:right">${fmt(r.grossPay)}</td>
-        <td class="deduction" style="text-align:right">-${fmt(r.socialInsurance.total)}</td>
+        <td class="deduction" style="text-align:right">-${fmt(r.socialInsurance)}</td>
         <td class="deduction" style="text-align:right">-${fmt(r.tax)}</td>
         <td class="income" style="text-align:right">${fmt(r.netPay)}</td>
       </tr>`,
@@ -748,7 +740,7 @@ function formatSingleText(r: MonthlyResult): string {
     `F班节假日(11h×3)：${fmt(r.holidayExtra)}`,
     `夜班补贴：${fmt(r.nightSubsidy)}`,
     `税前总工资：${fmt(r.grossPay)}`,
-    `社保扣款：-${fmt(r.socialInsurance.total)}（养老 ${fmt(r.socialInsurance.pension)} / 医疗 ${fmt(r.socialInsurance.medical)} / 失业 ${fmt(r.socialInsurance.unemployment)} / 大额长护 ${fmt(r.socialInsurance.fixed)}）`,
+    `社保扣款：-${fmt(r.socialInsurance)}`,
     `个税：-${fmt(r.tax)}`,
     `到手工资：${fmt(r.netPay)}`,
   ].join("\n");
@@ -758,7 +750,7 @@ function formatMultiText(s: MultiMonthSummary): string {
   const lines = ["【多月工资汇总】"];
   s.results.forEach((r) => {
     lines.push(
-      `${r.year}-${String(r.month).padStart(2, "0")} | 工作日 ${r.totalWorkDays}(A${r.aDayCount}/B${r.bDayCount}/F${r.fDayCount}) | 税前 ${fmt(r.grossPay)} | 社保 ${fmt(r.socialInsurance.total)} | 个税 ${fmt(r.tax)} | 到手 ${fmt(r.netPay)}`,
+      `${r.year}-${String(r.month).padStart(2, "0")} | 工作日 ${r.totalWorkDays}(A${r.aDayCount}/B${r.bDayCount}/F${r.fDayCount}) | 税前 ${fmt(r.grossPay)} | 社保 ${fmt(r.socialInsurance)} | 个税 ${fmt(r.tax)} | 到手 ${fmt(r.netPay)}`,
     );
   });
   lines.push(

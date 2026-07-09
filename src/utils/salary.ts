@@ -1,6 +1,5 @@
 import type {
   SalaryConfig,
-  SocialInsurance,
   MonthlyInput,
   MonthlyResult,
   MultiMonthSummary,
@@ -20,24 +19,8 @@ export function setCurrentSettings(s: UserSettings): void {
   TAX_RATE = s.taxRate;
 }
 
-/** 社保参数：getter 动态读取当前设置 */
-export const SOCIAL_INSURANCE: SocialInsurance = {
-  get base() {
-    return currentSettings.socialBase;
-  },
-  get pensionRate() {
-    return currentSettings.pensionRate;
-  },
-  get medicalRate() {
-    return currentSettings.medicalRate;
-  },
-  get unemploymentRate() {
-    return currentSettings.unemploymentRate;
-  },
-  get fixedDeduction() {
-    return currentSettings.fixedDeduction;
-  },
-};
+// ponytail: 社保固定扣款，不再按基数×费率计算
+const SOCIAL_INSURANCE = 44280; // 442.80 元
 
 export let TAX_THRESHOLD = DEFAULT_SETTINGS.taxThreshold; // 个税起征点
 export let TAX_RATE = DEFAULT_SETTINGS.taxRate; // 个税税率
@@ -51,24 +34,6 @@ export const STANDARD_WORK_HOURS = 8;
 /** 基础时薪 = 底薪 / 21.75 / 8（底薪为分，结果亦为分，可能含小数） */
 export function calcBaseHourlyRate(baseSalary: number): number {
   return baseSalary / STANDARD_WORK_DAYS / STANDARD_WORK_HOURS;
-}
-
-/** 按社保基数(分) × 比例计算各项 + 固定扣款；各项结果均为分 */
-export function calcSocialInsurance(): {
-  pension: number;
-  medical: number;
-  unemployment: number;
-  fixed: number;
-  total: number;
-} {
-  const pension = Math.round(SOCIAL_INSURANCE.base * SOCIAL_INSURANCE.pensionRate);
-  const medical = Math.round(SOCIAL_INSURANCE.base * SOCIAL_INSURANCE.medicalRate);
-  const unemployment = Math.round(
-    SOCIAL_INSURANCE.base * SOCIAL_INSURANCE.unemploymentRate,
-  );
-  const fixed = SOCIAL_INSURANCE.fixedDeduction;
-  const total = pension + medical + unemployment + fixed;
-  return { pension, medical, unemployment, fixed, total };
 }
 
 /**
@@ -130,12 +95,11 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     fixedTotal + weekdayOvertime + tuesdayDoublePay + holidayExtra + nightSubsidy,
   );
 
-  // i. 社保
-  const socialInsurance = calcSocialInsurance();
+  // i. 社保（固定值）
   // j. 个税
-  const tax = calcTax(grossPay, socialInsurance.total);
+  const tax = calcTax(grossPay, SOCIAL_INSURANCE);
   // k. 到手工资
-  const netPay = Math.round(grossPay - socialInsurance.total - tax);
+  const netPay = Math.round(grossPay - SOCIAL_INSURANCE - tax);
 
   return {
     year,
@@ -154,7 +118,7 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     holidayExtra,
     nightSubsidy,
     grossPay,
-    socialInsurance,
+    socialInsurance: SOCIAL_INSURANCE,
     tax,
     netPay,
     shiftType,
@@ -231,7 +195,7 @@ export function calcMultiMonth(
   }
 
   const totalGross = results.reduce((sum, r) => sum + r.grossPay, 0);
-  const totalSocial = results.reduce((sum, r) => sum + r.socialInsurance.total, 0);
+  const totalSocial = results.reduce((sum, r) => sum + r.socialInsurance, 0);
   const totalTax = results.reduce((sum, r) => sum + r.tax, 0);
   const totalNet = results.reduce((sum, r) => sum + r.netPay, 0);
   const averageNet = results.length > 0 ? Math.round(totalNet / results.length) : 0;
