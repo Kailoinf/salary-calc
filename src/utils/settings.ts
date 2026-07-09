@@ -21,7 +21,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   positionSalary: 20000,
   attendanceBonus: 15000,
   performanceSalary: 20000,
-  socialBase: 429900,
+  socialBase: 415388,
   pensionRate: 0.08,
   medicalRate: 0.02,
   unemploymentRate: 0.003,
