@@ -24,6 +24,8 @@ export interface MonthlyInput {
   noOvertimeDates: number[]; // 当月 A 班日中"不加班"的日期（几号）集合
   noOvertimeWeekdays: number[]; // "不加班"的周几集合（0~6），命中即该 A 班日不计加班
   config: SalaryConfig;
+  noSocial: boolean; // 不交社保
+  noTax: boolean;     // 不交个税
 }
 
 /** 月度计算结果 */

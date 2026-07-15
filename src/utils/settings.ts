@@ -12,10 +12,10 @@ export interface UserSettings {
 }
 
 export const DEFAULT_SETTINGS: UserSettings = {
-  baseSalary: 280000,
-  positionSalary: 20000,
+  baseSalary: 230000,
+  positionSalary: 10000,
   attendanceBonus: 15000,
-  performanceSalary: 20000,
+  performanceSalary: 0,
   taxThreshold: 500000,
   taxRate: 0.03,
 };

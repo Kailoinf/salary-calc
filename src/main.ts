@@ -684,6 +684,8 @@ function recalcSingle(): void {
   const bDay8hDates = readBDay8hDates();
   // 上月班次 = 当月相反（第一个休息日之前沿用）
   const prevShiftType: ShiftType = shiftType === "night" ? "day" : "night";
+  const noSocial = getById<HTMLInputElement>("single-no-social").checked;
+  const noTax = getById<HTMLInputElement>("single-no-tax").checked;
   lastSingle = calcMonthlySalary({
     year,
     month,
@@ -694,6 +696,8 @@ function recalcSingle(): void {
     noOvertimeDates,
     noOvertimeWeekdays,
     config,
+    noSocial,
+    noTax,
   });
   renderSingleResult(lastSingle);
 }
@@ -709,6 +713,8 @@ function recalcMulti(): void {
   const noOvertimeWeekdays = readNoOvertimeWeekdays("multi-noot-weekdays");
   const config = readConfig("multi");
   const bDay8hDates = readBDay8hDates();
+  const noSocial = getById<HTMLInputElement>("multi-no-social").checked;
+  const noTax = getById<HTMLInputElement>("multi-no-tax").checked;
   lastMulti = calcMultiMonth(
     start.year,
     start.month,
@@ -720,6 +726,8 @@ function recalcMulti(): void {
     bDay8hDates,
     noOvertimeWeekdays,
     [],
+    noSocial,
+    noTax,
   );
   multiPage = 0;
   renderMultiResult(lastMulti);
@@ -865,6 +873,9 @@ function init(): void {
   document
     .querySelectorAll<HTMLInputElement>("#single-noot-weekdays input")
     .forEach((cb) => cb.addEventListener("change", recalcSingle));
+  // 单月：不交社保/个税
+  getById<HTMLInputElement>("single-no-social").addEventListener("change", recalcSingle);
+  getById<HTMLInputElement>("single-no-tax").addEventListener("change", recalcSingle);
 
   // 多月：实时计算
   MULTI_INPUTS.forEach((id) => {
@@ -874,6 +885,9 @@ function init(): void {
   document
     .querySelectorAll<HTMLInputElement>("#multi-noot-weekdays input")
     .forEach((cb) => cb.addEventListener("change", recalcMulti));
+  // 多月：不交社保/个税
+  getById<HTMLInputElement>("multi-no-social").addEventListener("change", recalcMulti);
+  getById<HTMLInputElement>("multi-no-tax").addEventListener("change", recalcMulti);
   // 班次模式切换
   document
     .querySelectorAll<HTMLInputElement>('input[name="shift-mode"]')

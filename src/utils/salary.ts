@@ -31,9 +31,9 @@ export const STANDARD_WORK_HOURS = 8;
 // 金额一律以「分」参与运算；涉及比例/除法产生小数时，最终结果用 Math.round 取整为分。
 // 比例类（养老/医疗/失业/税率）保持小数不变，整数 × 小数 仍在分域。
 
-/** 基础时薪 = 底薪 / 21.75 / 8（底薪为分，结果亦为分，可能含小数） */
+/** 基础时薪 = Math.round(底薪 / 21.75 / 8)，取整到分 */
 export function calcBaseHourlyRate(baseSalary: number): number {
-  return baseSalary / STANDARD_WORK_DAYS / STANDARD_WORK_HOURS;
+  return Math.round(baseSalary / STANDARD_WORK_DAYS / STANDARD_WORK_HOURS);
 }
 
 /**
@@ -48,7 +48,7 @@ export function calcTax(grossPay: number, socialTotal: number): number {
 
 /** 月度薪资计算 */
 export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
-  const { year, month, restDayWeekday, shiftType, prevShiftType, bDay8hDates, noOvertimeDates, noOvertimeWeekdays, config } =
+  const { year, month, restDayWeekday, shiftType, prevShiftType, bDay8hDates, noOvertimeDates, noOvertimeWeekdays, config, noSocial, noTax } =
     input;
 
   // a. 当月排班统计（A/B/F 班分类 + 逐日白/夜班 + 不加班计数）
@@ -95,11 +95,12 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     fixedTotal + weekdayOvertime + tuesdayDoublePay + holidayExtra + nightSubsidy,
   );
 
-  // i. 社保（固定值）
-  // j. 个税
-  const tax = calcTax(grossPay, SOCIAL_INSURANCE);
+  // i. 社保（不交社保则跳过）
+  const socialDeduction = noSocial ? 0 : SOCIAL_INSURANCE;
+  // j. 个税（不交个税则跳过）
+  const tax = noTax ? 0 : calcTax(grossPay, socialDeduction);
   // k. 到手工资
-  const netPay = Math.round(grossPay - SOCIAL_INSURANCE - tax);
+  const netPay = Math.round(grossPay - socialDeduction - tax);
 
   return {
     year,
@@ -118,7 +119,7 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     holidayExtra,
     nightSubsidy,
     grossPay,
-    socialInsurance: SOCIAL_INSURANCE,
+    socialInsurance: socialDeduction,
     tax,
     netPay,
     shiftType,
@@ -144,6 +145,8 @@ export function calcMultiMonth(
   bDay8hDates: number[],
   noOvertimeWeekdays: number[],
   noOvertimeDates: number[],
+  noSocial: boolean,
+  noTax: boolean,
 ): MultiMonthSummary {
   const results: MonthlyResult[] = [];
 
@@ -182,6 +185,8 @@ export function calcMultiMonth(
         noOvertimeDates,
         noOvertimeWeekdays,
         config,
+        noSocial,
+        noTax,
       }),
     );
 
