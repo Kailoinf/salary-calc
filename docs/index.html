@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>工资计算器</title>
+    <script type="module" crossorigin src="/assets/index-CC2m5a9i.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Besn-jNs.css">
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>💰 工资计算器</h1>
+      </header>
+
+      <!-- Tab 切换 -->
+      <nav class="tabs">
+        <button class="tab active" data-tab="single">单月计算</button>
+        <button class="tab" data-tab="multi">多月批量</button>
+        <button class="tab" data-tab="settings">⚙️ 设置</button>
+      </nav>
+
+      <!-- ====== 模块1: 单月工资计算 ====== -->
+      <section id="tab-single" class="tab-content active">
+        <div class="card">
+          <h2>📅 日期与排班</h2>
+          <div class="form-row">
+            <label>年份 <input type="number" id="single-year" value="2026" min="2020" max="2030"></label>
+            <label>月份 <input type="number" id="single-month" value="7" min="1" max="12"></label>
+            <label>C班(休息日)周几
+              <select id="single-restday-weekday">
+                <option value="0">周日</option>
+                <option value="1">周一</option>
+                <option value="2">周二</option>
+                <option value="3" selected>周三</option>
+                <option value="4">周四</option>
+                <option value="5">周五</option>
+                <option value="6">周六</option>
+              </select>
+            </label>
+            <label>班次
+              <select id="single-shift">
+                <option value="day">白班</option>
+                <option value="night">夜班</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="card no-ot-section">
+          <h2>🚫 不加班</h2>
+          <h3>按周几</h3>
+          <div class="checkbox-row" id="single-noot-weekdays">
+            <label><input type="checkbox" value="0"> 周日</label>
+            <label><input type="checkbox" value="1"> 周一</label>
+            <label><input type="checkbox" value="2"> 周二</label>
+            <label><input type="checkbox" value="3"> 周三</label>
+            <label><input type="checkbox" value="4"> 周四</label>
+            <label><input type="checkbox" value="5"> 周五</label>
+            <label><input type="checkbox" value="6"> 周六</label>
+          </div>
+          <h3>按日期</h3>
+          <div id="single-noot-dates"></div>
+          <h3>B班仅8h</h3>
+          <div id="single-bday8h-dates"></div>
+        </div>
+
+        <div class="card">
+          <h2>💰 基础薪资</h2>
+          <div class="form-row">
+            <label>基础工资 <input type="number" id="single-base" value="2800" min="0" step="100"></label>
+            <label>岗位工资 <input type="number" id="single-position" value="200" min="0" step="10"></label>
+            <label>全勤奖 <input type="number" id="single-attendance" value="150" min="0" step="10"></label>
+            <label>绩效工资 <input type="number" id="single-performance" value="200" min="0" step="10"></label>
+          </div>
+          <div class="toggle-row">
+            <label class="toggle-label"><input type="checkbox" id="single-no-social"> 不交社保</label>
+            <label class="toggle-label"><input type="checkbox" id="single-no-tax"> 不交个税</label>
+          </div>
+        </div>
+
+        <div class="card result-card">
+          <h2>📊 计算结果</h2>
+          <div id="single-result"></div>
+        </div>
+
+        <button id="single-copy" class="btn-copy" style="display:none">📋 复制薪资明细</button>
+      </section>
+
+      <!-- ====== 模块2: 多月批量计算 ====== -->
+      <section id="tab-multi" class="tab-content">
+        <div class="card">
+          <h2>📅 日期区间</h2>
+          <div class="form-row">
+            <label>起始年月 <input type="month" id="multi-start" value="2026-01"></label>
+            <label>结束年月 <input type="month" id="multi-end" value="2026-12"></label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>💰 基础薪资</h2>
+          <div class="form-row">
+            <label>基础工资 <input type="number" id="multi-base" value="2800" min="0" step="100"></label>
+            <label>岗位工资 <input type="number" id="multi-position" value="200" min="0" step="10"></label>
+            <label>全勤奖 <input type="number" id="multi-attendance" value="150" min="0" step="10"></label>
+            <label>绩效工资 <input type="number" id="multi-performance" value="200" min="0" step="10"></label>
+          </div>
+          <div class="toggle-row">
+            <label class="toggle-label"><input type="checkbox" id="multi-no-social"> 不交社保</label>
+            <label class="toggle-label"><input type="checkbox" id="multi-no-tax"> 不交个税</label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🔄 排班配置</h2>
+          <div class="restday-mode">
+            <label><input type="radio" name="restday-mode" value="uniform" checked> 所有月份统一</label>
+            <label><input type="radio" name="restday-mode" value="individual"> 每月单独编辑</label>
+          </div>
+          <div id="multi-restday-inputs"></div>
+          <div class="restday-mode">
+            <span class="mode-label">班次模式：</span>
+            <label><input type="radio" name="shift-mode" value="flip" checked> 自动轮换（白→夜→白→夜）</label>
+            <label><input type="radio" name="shift-mode" value="individual"> 每月自定义</label>
+          </div>
+          <div id="multi-shift-inputs"></div>
+          <div class="no-ot-section">
+            <h3>不加班周几</h3>
+            <div class="checkbox-row" id="multi-noot-weekdays">
+              <label><input type="checkbox" value="0"> 周日</label>
+              <label><input type="checkbox" value="1"> 周一</label>
+              <label><input type="checkbox" value="2"> 周二</label>
+              <label><input type="checkbox" value="3"> 周三</label>
+              <label><input type="checkbox" value="4"> 周四</label>
+              <label><input type="checkbox" value="5"> 周五</label>
+              <label><input type="checkbox" value="6"> 周六</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>📊 多月汇总</h2>
+          <div id="multi-results"></div>
+          <div id="multi-summary" class="summary-box"></div>
+        </div>
+
+        <button id="multi-copy" class="btn-copy" style="display:none">📋 复制汇总文本</button>
+      </section>
+
+      <!-- ====== 模块3: 设置 ====== -->
+      <section id="tab-settings" class="tab-content">
+        <div class="card">
+          <h2>💰 薪资构成</h2>
+          <div class="form-row">
+            <label>基础工资 <input type="number" id="settings-salary-base" min="0" step="100"></label>
+            <label>岗位工资 <input type="number" id="settings-salary-position" min="0" step="10"></label>
+            <label>全勤奖 <input type="number" id="settings-salary-attendance" min="0" step="10"></label>
+            <label>绩效工资 <input type="number" id="settings-salary-performance" min="0" step="10"></label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🏥 社保个税</h2>
+          <div class="form-row">
+            <label>个税起征点 <input type="number" id="settings-threshold" min="0" step="100"></label>
+            <label>个税税率 <input type="number" id="settings-rate" min="0" max="1" step="0.001"></label>
+          </div>
+          <button id="settings-reset" class="btn-copy">↩️ 恢复默认</button>
+        </div>
+      </section>
+
+    </div>
+  </body>
+</html>
