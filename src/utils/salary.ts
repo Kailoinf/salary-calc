@@ -20,7 +20,7 @@ export function setCurrentSettings(s: UserSettings): void {
 }
 
 // ponytail: 社保固定扣款，不再按基数×费率计算
-const SOCIAL_INSURANCE = 44280; // 442.80 元
+export const SOCIAL_INSURANCE = 44280; // 442.80 元
 
 export let TAX_THRESHOLD = DEFAULT_SETTINGS.taxThreshold; // 个税起征点
 export let TAX_RATE = DEFAULT_SETTINGS.taxRate; // 个税税率

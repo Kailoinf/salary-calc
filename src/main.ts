@@ -1,5 +1,5 @@
 import type { SalaryConfig, MonthlyResult, MultiMonthSummary, ShiftType } from "./types";
-import { calcMonthlySalary, calcMultiMonth, setCurrentSettings } from "./utils/salary";
+import { calcMonthlySalary, calcMultiMonth, calcBaseHourlyRate, calcTax, SOCIAL_INSURANCE, setCurrentSettings } from "./utils/salary";
 import {
   loadSettings,
   saveSettings,
@@ -127,7 +127,7 @@ function readMonth(
 }
 
 /** 读取基础薪资配置（表单以元输入，转分存储） */
-function readConfig(prefix: "single" | "multi"): SalaryConfig {
+function readConfig(prefix: "single" | "multi" | "manual"): SalaryConfig {
   return {
     baseSalary: yuanToCents(validateNumber(`${prefix}-base`, salarySchema, 2800)),
     positionPay: yuanToCents(validateNumber(`${prefix}-position`, salarySchema, 200)),
@@ -498,6 +498,7 @@ function onSettingsInput(): void {
   setCurrentSettings(s);
   recalcSingle();
   recalcMulti();
+  recalcManual();
 }
 
 /* ============================================================
@@ -506,10 +507,10 @@ function onSettingsInput(): void {
 
 /** 每个 key 对应一组共享同一值的输入框（单月/多月/设置三处入口） */
 const SALARY_FIELDS: { key: keyof UserSettings; ids: string[] }[] = [
-  { key: "baseSalary", ids: ["single-base", "multi-base", "settings-salary-base"] },
-  { key: "positionSalary", ids: ["single-position", "multi-position", "settings-salary-position"] },
-  { key: "attendanceBonus", ids: ["single-attendance", "multi-attendance", "settings-salary-attendance"] },
-  { key: "performanceSalary", ids: ["single-performance", "multi-performance", "settings-salary-performance"] },
+  { key: "baseSalary", ids: ["single-base", "multi-base", "manual-base", "settings-salary-base"] },
+  { key: "positionSalary", ids: ["single-position", "multi-position", "manual-position", "settings-salary-position"] },
+  { key: "attendanceBonus", ids: ["single-attendance", "multi-attendance", "manual-attendance", "settings-salary-attendance"] },
+  { key: "performanceSalary", ids: ["single-performance", "multi-performance", "manual-performance", "settings-salary-performance"] },
 ];
 
 /** 把薪资设置写到三处表单（分→元显示；程序赋值不触发 input 事件，无循环风险） */
@@ -539,6 +540,7 @@ function onSalaryInput(key: keyof UserSettings, srcId: string): void {
   }
   recalcSingle();
   recalcMulti();
+  recalcManual();
 }
 
 /* ============================================================
@@ -733,6 +735,40 @@ function recalcMulti(): void {
   renderMultiResult(lastMulti);
 }
 
+function recalcManual(): void {
+  const otHours = validateNumber("manual-overtime", z.number().min(0), 3);
+  const bHours = validateNumber("manual-bhours", z.number().min(0), 11);
+  const fHours = validateNumber("manual-fhours", z.number().min(0), 11);
+  const nightDays = validateNumber("manual-nights", z.number().min(0), 0);
+  const config = readConfig("manual");
+  const noSocial = getById<HTMLInputElement>("manual-no-social").checked;
+  const noTax = getById<HTMLInputElement>("manual-no-tax").checked;
+
+  const hr = calcBaseHourlyRate(config.baseSalary);
+  const fixedTotal = config.baseSalary + config.positionPay + config.fullAttendanceBonus + config.performancePay;
+  const otPay = Math.round(otHours * 1.5 * hr);
+  const bPay = Math.round(bHours * 2 * hr);
+  const fPay = Math.round(fHours * 3 * hr);
+  const nightPay = Math.round(nightDays * 2000);
+  const grossPay = Math.round(fixedTotal + otPay + bPay + fPay + nightPay);
+  const social = noSocial ? 0 : SOCIAL_INSURANCE;
+  const tax = noTax ? 0 : calcTax(grossPay, social);
+  const netPay = Math.round(grossPay - social - tax);
+
+  getById("manual-result").innerHTML = `
+    <table class="result-table"><tbody>
+      <tr><td>固定薪资合计</td><td style="text-align:right">${fmt(fixedTotal)}</td></tr>
+      <tr><td>A班加班(${otHours}h×1.5)</td><td class="income" style="text-align:right">${fmt(otPay)}</td></tr>
+      <tr><td>B班(${bHours}h×2)</td><td class="income" style="text-align:right">${fmt(bPay)}</td></tr>
+      <tr><td>F班(${fHours}h×3)</td><td class="income" style="text-align:right">${fmt(fPay)}</td></tr>
+      <tr><td>夜班补贴(${nightDays}天)</td><td class="income" style="text-align:right">${fmt(nightPay)}</td></tr>
+      <tr class="total-row"><td>税前总工资</td><td style="text-align:right">${fmt(grossPay)}</td></tr>
+      <tr><td>社保扣除</td><td class="deduction" style="text-align:right">-${fmt(social)}</td></tr>
+      <tr><td>个税</td><td class="deduction" style="text-align:right">-${fmt(tax)}</td></tr>
+    </tbody></table>
+    <div class="net-pay-wrap"><span class="net-label">到手工资</span><span class="net-pay">${fmt(netPay)}</span></div>`;
+}
+
 /* ============================================================
  * 复制
  * ========================================================== */
@@ -856,6 +892,7 @@ function init(): void {
     applySalaryToForms(s);
     recalcSingle();
     recalcMulti();
+    recalcManual();
   });
 
   // 单月：实时计算
@@ -922,11 +959,19 @@ function init(): void {
     if (lastMulti) void copyText(formatMultiText(lastMulti), getById<HTMLButtonElement>("multi-copy"));
   });
 
+  // 手动算薪：实时计算
+  ["manual-overtime", "manual-bhours", "manual-fhours", "manual-nights"].forEach((id) => {
+    getById<HTMLInputElement>(id).addEventListener("input", recalcManual);
+  });
+  getById<HTMLInputElement>("manual-no-social").addEventListener("change", recalcManual);
+  getById<HTMLInputElement>("manual-no-tax").addEventListener("change", recalcManual);
+
   setupTabs();
 
   // 首次计算
   recalcSingle();
   recalcMulti();
+  recalcManual();
 }
 
 document.addEventListener("DOMContentLoaded", init);
