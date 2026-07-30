@@ -59,7 +59,7 @@ export default function App() {
         )}
 
         <footer className="text-center text-xs text-slate-300 pt-4">
-          Made by Gakusyun with Hermes · DeepSeek V4 Pro · GLM 5.2
+          © Gakusyun · 工资计算器
         </footer>
       </div>
     </div>
