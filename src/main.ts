@@ -736,9 +736,9 @@ function recalcMulti(): void {
 }
 
 function recalcManual(): void {
-  const otHours = validateNumber("manual-overtime", z.number().min(0), 3);
-  const bHours = validateNumber("manual-bhours", z.number().min(0), 11);
-  const fHours = validateNumber("manual-fhours", z.number().min(0), 11);
+  const otHours = validateNumber("manual-overtime", z.number().min(0), 72);
+  const bHours = validateNumber("manual-bhours", z.number().min(0), 44);
+  const fHours = validateNumber("manual-fhours", z.number().min(0), 0);
   const nightDays = validateNumber("manual-nights", z.number().min(0), 0);
   const config = readConfig("manual");
   const noSocial = getById<HTMLInputElement>("manual-no-social").checked;
