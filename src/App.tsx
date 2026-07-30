@@ -36,7 +36,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
+    <div className="min-h-screen bg-white text-slate-800">
       <div className="mx-auto max-w-4xl px-4 py-6 space-y-5">
         <Header />
         <Tabs active={tab} onChange={setTab} />
