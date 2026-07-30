@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工资计算器 — 文档</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+<div class="mx-auto max-w-3xl px-4 py-12 space-y-10">
+
+  <!-- Hero -->
+  <header class="text-center space-y-3">
+    <h1 class="text-4xl font-bold text-slate-900">💰 工资计算器</h1>
+    <p class="text-lg text-slate-500">基于排班的工资计算工具，支持手动/单月/多月模式，含五险一金与个税</p>
+    <div class="flex justify-center gap-3 text-sm">
+      <span class="bg-sky-100 text-sky-700 px-3 py-1 rounded-full">React 19</span>
+      <span class="bg-sky-100 text-sky-700 px-3 py-1 rounded-full">Tailwind CSS v4</span>
+      <span class="bg-sky-100 text-sky-700 px-3 py-1 rounded-full">TypeScript</span>
+      <span class="bg-sky-100 text-sky-700 px-3 py-1 rounded-full">Vite</span>
+    </div>
+    <a href="https://github.com/Kailoinf/salary-calc" class="inline-block mt-2 text-sky-600 hover:underline text-sm">GitHub →</a>
+  </header>
+
+  <!-- 功能 -->
+  <section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
+    <h2 class="text-xl font-semibold">📋 功能</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div class="bg-slate-50 rounded-lg p-4">
+        <h3 class="font-medium text-sky-700">✏️ 手动算薪</h3>
+        <p class="text-sm text-slate-500 mt-1">直接输入加班小时、B班小时、F班小时、夜班天数，即时计算税前/社保/个税/到手工资。默认值：A班72h + B班44h。</p>
+      </div>
+      <div class="bg-slate-50 rounded-lg p-4">
+        <h3 class="font-medium text-sky-700">📅 单月计算</h3>
+        <p class="text-sm text-slate-500 mt-1">选择年月 + C班周几 + 班次，自动识别 A/B/F 班日与中国法定节假日。支持不加班标记、B班仅8h调休。</p>
+      </div>
+      <div class="bg-slate-50 rounded-lg p-4">
+        <h3 class="font-medium text-sky-700">📊 多月批量</h3>
+        <p class="text-sm text-slate-500 mt-1">选择跨月日期区间，统一或每月单独配置 C班/班次，自动轮换白夜班。分页展示 + 汇总统计。</p>
+      </div>
+      <div class="bg-slate-50 rounded-lg p-4">
+        <h3 class="font-medium text-sky-700">⚙️ 设置</h3>
+        <p class="text-sm text-slate-500 mt-1">底薪/岗位工资/全勤奖/绩效工资全局同步。个税起征点与税率可调。社保固定 442.80 元。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 排班逻辑 -->
+  <section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-3">
+    <h2 class="text-xl font-semibold">🔄 排班规则</h2>
+    <table class="w-full text-sm">
+      <thead><tr class="text-slate-500 border-b border-slate-200"><th class="py-2 text-left font-medium">班次</th><th class="py-2 text-left font-medium">定义</th><th class="py-2 text-right font-medium">加班计算</th></tr></thead>
+      <tbody>
+        <tr class="border-b border-slate-100"><td class="py-2 font-medium">A 班</td><td class="py-2 text-slate-600">普通工作日（周一至周五中非 C 班前日、非法定假日）</td><td class="py-2 text-right tabular-nums">3h × 1.5 倍时薪</td></tr>
+        <tr class="border-b border-slate-100"><td class="py-2 font-medium">B 班</td><td class="py-2 text-slate-600">C 班前一天（默认 11h × 2 倍，可勾选仅 8h）</td><td class="py-2 text-right tabular-nums">11h(或8h) × 2 倍时薪</td></tr>
+        <tr class="border-b border-slate-100"><td class="py-2 font-medium">C 班</td><td class="py-2 text-slate-600">休息日（可自选周几，默认周三）</td><td class="py-2 text-right text-slate-400">不排班</td></tr>
+        <tr><td class="py-2 font-medium">F 班</td><td class="py-2 text-slate-600">法定节假日出勤</td><td class="py-2 text-right tabular-nums">11h × 3 倍时薪</td></tr>
+      </tbody>
+    </table>
+    <p class="text-xs text-slate-400">时薪 = 底薪 ÷ 21.75 ÷ 8。夜班补贴 = 20元/出勤日。所有金额以"分"为内部单位运算，消除浮点误差。</p>
+  </section>
+
+  <!-- 工资构成 -->
+  <section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-3">
+    <h2 class="text-xl font-semibold">💵 工资构成</h2>
+    <table class="w-full text-sm">
+      <thead><tr class="text-slate-500 border-b border-slate-200"><th class="py-2 text-left font-medium">项目</th><th class="py-2 text-right font-medium">金额（元）</th><th class="py-2 text-center font-medium">说明</th></tr></thead>
+      <tbody>
+        <tr class="border-b border-slate-100"><td class="py-2">底薪</td><td class="py-2 text-right tabular-nums">2,800.00</td><td class="py-2 text-center text-slate-400">默认，可调</td></tr>
+        <tr class="border-b border-slate-100"><td class="py-2">岗位工资</td><td class="py-2 text-right tabular-nums">200.00</td><td class="py-2 text-center text-slate-400">默认，可调</td></tr>
+        <tr class="border-b border-slate-100"><td class="py-2">全勤奖</td><td class="py-2 text-right tabular-nums">150.00</td><td class="py-2 text-center text-slate-400">默认，可调</td></tr>
+        <tr class="border-b border-slate-100"><td class="py-2">绩效工资</td><td class="py-2 text-right tabular-nums">200.00</td><td class="py-2 text-center text-slate-400">默认，可调</td></tr>
+        <tr class="border-b border-slate-200"><td class="py-2 font-medium">固定薪资小计</td><td class="py-2 text-right tabular-nums font-medium">3,350.00</td><td class="py-2 text-center text-slate-400"></td></tr>
+        <tr class="border-b border-slate-100"><td class="py-2 text-emerald-600">+ A班加班</td><td class="py-2 text-right tabular-nums text-emerald-600">按排班</td><td class="py-2 text-center text-slate-400">3h×1.5×时薪×A班天数</td></tr>
+        <tr class="border-b border-slate-100"><td class="py-2 text-emerald-600">+ B班双倍</td><td class="py-2 text-right tabular-nums text-emerald-600">按排班</td><td class="py-2 text-center text-slate-400">11h(或8h)×2×时薪×B班天数</td></tr>
+        <tr class="border-b border-slate-100"><td class="py-2 text-emerald-600">+ F班节假日</td><td class="py-2 text-right tabular-nums text-emerald-600">按排班</td><td class="py-2 text-center text-slate-400">11h×3×时薪×F班天数</td></tr>
+        <tr class="border-b border-slate-100"><td class="py-2 text-emerald-600">+ 夜班补贴</td><td class="py-2 text-right tabular-nums text-emerald-600">¥20/天</td><td class="py-2 text-center text-slate-400">出勤夜班日数</td></tr>
+        <tr class="border-b border-slate-200"><td class="py-2 font-bold">税前合计</td><td class="py-2 text-right tabular-nums font-bold">—</td><td class="py-2 text-center text-slate-400"></td></tr>
+        <tr class="border-b border-slate-100"><td class="py-2 text-rose-500">− 社保</td><td class="py-2 text-right tabular-nums text-rose-500">442.80</td><td class="py-2 text-center text-slate-400">固定扣款</td></tr>
+        <tr><td class="py-2 text-rose-500">− 个税</td><td class="py-2 text-right tabular-nums text-rose-500">按档计算</td><td class="py-2 text-center text-slate-400">(税前−起征点−社保)×税率</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 启动 -->
+  <section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-3">
+    <h2 class="text-xl font-semibold">🚀 本地运行</h2>
+    <pre class="bg-slate-900 text-slate-100 rounded-lg p-4 text-sm overflow-x-auto"><code>git clone https://github.com/Kailoinf/salary-calc.git
+cd salary-calc
+pnpm install
+pnpm dev          # 开发模式 → http://localhost:5173
+pnpm build        # 生产构建 → dist/</code></pre>
+  </section>
+
+  <footer class="text-center text-xs text-slate-400">
+    Made by Gakusyun · 部署于 Vercel
+  </footer>
+</div>
+</body>
+</html>
