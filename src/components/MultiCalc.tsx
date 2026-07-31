@@ -221,7 +221,7 @@ export function MultiCalc({
           <p className="text-sm text-slate-400 dark:text-slate-500">请选择有效的日期区间（结束月份需不早于起始月份）。</p>
         ) : (
           <>
-            <div className="overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{scrollbarWidth:"none"}}>
+            <div className="overflow-x-auto scrollbar-none">
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 whitespace-nowrap">
