@@ -49,10 +49,10 @@ export function ManualCalc({
   }, [settings, overtime, bhours, fhours, nights, noSocial, noTax]);
 
   const hourFields = [
-    { label: "加班小时(A班×1.5)", step: "0.5", value: overtime, set: setOvertime },
-    { label: "B班小时(×2)", step: "0.5", value: bhours, set: setBhours },
-    { label: "F班小时(×3)", step: "0.5", value: fhours, set: setFhours },
-    { label: "夜班天数", step: "1", value: nights, set: setNights },
+    { label: "加班小时(A班×1.5)", step: "0.5", value: overtime, set: setOvertime, def: "72" },
+    { label: "B班小时(×2)", step: "0.5", value: bhours, set: setBhours, def: "44" },
+    { label: "F班小时(×3)", step: "0.5", value: fhours, set: setFhours, def: "0" },
+    { label: "夜班天数", step: "1", value: nights, set: setNights, def: "0" },
   ];
 
   return (
@@ -68,6 +68,7 @@ export function ManualCalc({
                 step={f.step}
                 value={f.value}
                 onChange={(e) => f.set(e.target.value)}
+                onBlur={(e) => { if ((e.target as any).value === "") f.set(f.def) }}
                 className={INPUT}
               />
             </label>
