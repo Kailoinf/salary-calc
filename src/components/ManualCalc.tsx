@@ -8,7 +8,7 @@ import {
   SOCIAL_INSURANCE,
 } from "../utils/salary";
 import { num, salaryConfig } from "../utils/format";
-import { Card, Field, INPUT, MoneyTable, NetPay } from "./ui";
+import { Card, ExportBtn, Field, INPUT, MoneyTable, NetPay, exportSalaryImage } from "./ui";
 
 export function ManualCalc({
   settings,
@@ -118,7 +118,20 @@ export function ManualCalc({
         </Field>
       </Card>
 
-      <Card title="计算结果">
+      <Card title="计算结果" action={<ExportBtn onClick={() => exportSalaryImage({
+        title: "手动算薪",
+        rows: [
+          { label: "固定薪资合计", amount: r.fixedTotal },
+          { label: `A班加班(${r.ot}h×1.5)`, amount: r.otPay, kind: "income" },
+          { label: `B班(${r.bh}h×2)`, amount: r.bPay, kind: "income" },
+          { label: `F班(${r.fh}h×3)`, amount: r.fPay, kind: "income" },
+          { label: `夜班补贴(${r.nd}天)`, amount: r.nightPay, kind: "income" },
+          { label: "税前总工资", amount: r.grossPay, kind: "total" },
+          { label: "社保扣除", amount: r.social, kind: "deduction" },
+          { label: "个税", amount: r.tax, kind: "deduction" },
+        ],
+        netPay: r.netPay,
+      })} />}>
         <MoneyTable
           rows={[
             { label: "固定薪资合计", amount: r.fixedTotal },

@@ -3,7 +3,7 @@ import type { ShiftType } from "../types";
 import type { UserSettings } from "../utils/settings";
 import { calcMultiMonth } from "../utils/salary";
 import { fmt, salaryConfig, WEEKDAY_NAMES } from "../utils/format";
-import { Card, INPUT } from "./ui";
+import { Card, ExportBtn, INPUT, exportSalaryImage } from "./ui";
 
 interface YearMonth {
   year: number;
@@ -93,45 +93,22 @@ export function MultiCalc({
     { label: "月均到手", amount: summary.averageNet, kind: "income", big: true },
   ];
 
-  async function saveImage() {
-    const rows = summary.results;
-    const pad = 24;
-    const rowH = 22;
-    const colW = [58, 44, 32, 32, 32, 36, 72, 72, 72, 72];
-    const headers = ["月份","工作日","A班","B班","F班","班次","税前","社保","个税","到手"];
-    const sumLabels = [`总税前：${fmt(summary.totalGross)}`,`总社保：${fmt(summary.totalSocial)}`,`总个税：${fmt(summary.totalTax)}`,`总到手：${fmt(summary.totalNet)}`,`月均到手：${fmt(summary.averageNet)}`];
-    const w = colW.reduce((a,b) => a+b, 0) + pad * 2;
-    const h = pad * 2 + rowH + rowH * rows.length + rowH * sumLabels.length + pad;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d")!;
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = "#334155";
-    ctx.font = "bold 13px sans-serif";
-    let y = pad + rowH;
-    let x = pad;
-    headers.forEach((hdr, i) => { ctx.fillText(hdr, x, y); x += colW[i]; });
-    ctx.font = "12px sans-serif";
-    y += rowH;
-    rows.forEach((r) => {
-      x = pad;
-      const cols = [`${r.year}/${String(r.month).padStart(2,"0")}`, String(r.totalWorkDays), String(r.aDayCount), String(r.bDayCount), String(r.fDayCount), r.shiftType === "night" ? "夜班" : "白班", fmt(r.grossPay), "-"+fmt(r.socialInsurance), "-"+fmt(r.tax), fmt(r.netPay)];
-      cols.forEach((c, i) => { ctx.fillText(c, x, y); x += colW[i]; });
-      y += rowH;
-    });
-    ctx.font = "bold 12px sans-serif";
-    sumLabels.forEach((l) => { ctx.fillText(l, pad, y); y += rowH; });
-
-    canvas.toBlob((b) => {
-      if (!b) return;
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(b);
-      const y0 = rows.length > 0 ? rows[0].year : new Date().getFullYear();
-      a.download = `薪资汇总_${y0}.png`;
-      a.click();
+  function saveImage() {
+    const rows = summary.results.map(r => ({
+      label: `${r.year}/${String(r.month).padStart(2,"0")}`,
+      data: [String(r.totalWorkDays), String(r.aDayCount), String(r.bDayCount), String(r.fDayCount), r.shiftType==="night"?"夜班":"白班", fmt(r.grossPay), "-"+fmt(r.socialInsurance), "-"+fmt(r.tax), fmt(r.netPay)]
+    }));
+    exportSalaryImage({
+      title: `${s.year}年${s.month}月 — ${e.year}年${e.month}月 工资汇总`,
+      rows: [
+        ...summary.results.map(r => ({ label: `${r.year}/${String(r.month).padStart(2,"0")}  税前${fmt(r.grossPay)}  到手${fmt(r.netPay)}`, amount: r.grossPay })),
+        { label: "总税前", amount: summary.totalGross, kind: "total" as const },
+        { label: "总社保", amount: summary.totalSocial, kind: "deduction" as const },
+        { label: "总个税", amount: summary.totalTax, kind: "deduction" as const },
+        { label: "总到手", amount: summary.totalNet, kind: "income" as const },
+        { label: "月均到手", amount: summary.averageNet, kind: "income" as const },
+      ],
+      netPay: summary.totalNet,
     });
   }
 
@@ -239,7 +216,7 @@ export function MultiCalc({
         </div>
       </Card>
 
-      <Card title="多月汇总">
+      <Card title="多月汇总" action={<ExportBtn onClick={saveImage} />}>
         {summary.results.length === 0 ? (
           <p className="text-sm text-slate-400 dark:text-slate-500">请选择有效的日期区间（结束月份需不早于起始月份）。</p>
         ) : (
@@ -313,12 +290,6 @@ export function MultiCalc({
               ))}
             </div>
 
-            <button
-              onClick={saveImage}
-              className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition-colors"
-            >
-              保存为图片
-            </button>
           </>
         )}
       </Card>

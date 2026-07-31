@@ -3,12 +3,14 @@ import type { ShiftType } from "../types";
 import type { UserSettings } from "../utils/settings";
 import { calcMonthlySalary } from "../utils/salary";
 import { getADayDates, getBDayDates } from "../utils/date";
-import { copyText, fmt, num, salaryConfig, WEEKDAY_NAMES } from "../utils/format";
+import { fmt, num, salaryConfig, WEEKDAY_NAMES } from "../utils/format";
 import {
   Card,
+  ExportBtn,
   INPUT,
   MoneyTable,
   NetPay,
+  exportSalaryImage,
 } from "./ui";
 
 const toggle = (arr: number[], v: number) =>
@@ -26,12 +28,11 @@ export function SingleCalc({
   const restDayWeekday = settings.restDayWeekday;
   const [shiftType, setShiftType] = useState<ShiftType>("day");
   const [noOtWeekdays, setNoOtWeekdays] = useState<number[]>([]);
-  const [noOtDates, setNoOtDates] = useState<number[]>([]); // 标记"不加班"的 A 班日
+  const [noOtDates, setNoOtDates] = useState<number[]>([]);
   const [bDay8h, setBDay8h] = useState<number[]>([]);
   const [adjustment, setAdjustment] = useState("0");
   const noSocial = settings.noSocial;
   const noTax = settings.noTax;
-  const [copied, setCopied] = useState(false);
 
   const y = num(year, 2026);
   const m = num(month, 7);
@@ -75,27 +76,16 @@ export function SingleCalc({
     { label: "班次", val: r.shiftType === "night" ? "夜班" : "白班" },
   ];
 
-  async function copy() {
-    const shiftLabel = r.shiftType === "night" ? "夜班" : "白班";
-    await copyText(
-      [
-        `【${r.year}年${r.month}月 工资明细】`,
-        `班次：${shiftLabel} | 工作日 ${r.totalWorkDays} 天 | A班 ${r.aDayCount} | B班 ${r.bDayCount} | F班(节假日) ${r.fDayCount} | 休息${WEEKDAY_NAMES[r.restDayWeekday]} | 不加班 ${r.noOvertimeCount} 天 | 夜班 ${r.nightShiftDays} 天`,
-        "",
-        `固定薪资：${fmt(r.fixedTotal)}`,
-        `A班加班(3h×1.5)：${fmt(r.weekdayOvertime)}`,
-        `B班双倍(${r.bDayCount - r.bDay8hCount}×11h ${r.bDay8hCount}×8h)：${fmt(r.tuesdayDoublePay)}`,
-        `F班节假日(11h×3)：${fmt(r.holidayExtra)}`,
-        `夜班补贴：${fmt(r.nightSubsidy)}`,
-        `税前总工资：${fmt(r.grossPay)}`,
-        `社保扣款：-${fmt(r.socialInsurance)}`,
-        `个税：-${fmt(r.tax)}`,
-        `到手工资：${fmt(r.netPay)}`,
-      ].join("\n"),
-    );
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
-  }
+  const imgRows = [
+    { label: "固定薪资合计", amount: r.fixedTotal },
+    { label: `A班加班(${(r.aDayCount - r.noOvertimeCount) * 3}h×1.5)`, amount: r.weekdayOvertime, kind: "income" as const },
+    { label: `B班双倍(${r.bDayCount - r.bDay8hCount}×11h ${r.bDay8hCount}×8h)`, amount: r.tuesdayDoublePay, kind: "income" as const },
+    { label: `F班节假日(${r.fDayCount * 11}h×3)`, amount: r.holidayExtra, kind: "income" as const },
+    { label: "夜班补贴", amount: r.nightSubsidy, kind: "income" as const },
+    { label: "税前总工资", amount: r.grossPay, kind: "total" as const },
+    { label: "社保扣除", amount: r.socialInsurance, kind: "deduction" as const },
+    { label: "个税", amount: r.tax, kind: "deduction" as const },
+  ];
 
   return (
     <div className="space-y-4">
@@ -188,7 +178,11 @@ export function SingleCalc({
         </div>
       </Card>
 
-      <Card title="计算结果">
+      <Card title="计算结果" action={<ExportBtn onClick={() => exportSalaryImage({
+        title: `${r.year}年${r.month}月 工资明细`,
+        rows: imgRows,
+        netPay: r.netPay,
+      })} />}>
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {stats.map((s) => (
             <div key={s.label} className="bg-slate-50 dark:bg-black rounded-lg px-2 py-2 text-center">
@@ -197,25 +191,8 @@ export function SingleCalc({
             </div>
           ))}
         </div>
-        <MoneyTable
-          rows={[
-            { label: "固定薪资合计", amount: r.fixedTotal },
-            { label: `A班加班(${(r.aDayCount - r.noOvertimeCount) * 3}h×1.5)`, amount: r.weekdayOvertime, kind: "income" },
-            { label: `B班双倍(${r.bDayCount - r.bDay8hCount}×11h ${r.bDay8hCount}×8h)`, amount: r.tuesdayDoublePay, kind: "income" },
-            { label: `F班节假日(${r.fDayCount * 11}h×3)`, amount: r.holidayExtra, kind: "income" },
-            { label: "夜班补贴", amount: r.nightSubsidy, kind: "income" },
-            { label: "税前总工资", amount: r.grossPay, kind: "total" },
-            { label: "社保扣除", amount: r.socialInsurance, kind: "deduction" },
-            { label: "个税", amount: r.tax, kind: "deduction" },
-          ]}
-        />
+        <MoneyTable rows={imgRows} />
         <NetPay amount={r.netPay} />
-        <button
-          onClick={copy}
-          className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition-colors"
-        >
-          {copied ? "已复制！" : "复制薪资明细"}
-        </button>
       </Card>
     </div>
   );

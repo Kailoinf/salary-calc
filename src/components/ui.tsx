@@ -5,17 +5,24 @@ import { copyText, fmt, WEEKDAY_NAMES, yuanToCents } from "../utils/format";
 export const INPUT =
   "px-2 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-black text-sm focus:border-sky-500 dark:focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-500 dark:focus:ring-sky-400 w-full";
 
-/** 白色圆角分区卡片 */
+/** 白色圆角分区卡片，可带右上角操作按钮 */
 export function Card({
   title,
+  action,
   children,
 }: {
   title?: string;
+  action?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <section className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm dark:shadow-none space-y-3">
-      {title && <h2 className="font-semibold text-slate-900 dark:text-slate-100">{title}</h2>}
+      {title && (
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+          {action}
+        </div>
+      )}
       {children}
     </section>
   );
@@ -215,20 +222,133 @@ export function WeekdayToggles({
   );
 }
 
-/** 复制按钮，点击后显示 2 秒回馈 */
-export function CopyButton({ text, label }: { text: string; label: string }) {
-  const [copied, setCopied] = useState(false);
-  const copy = useCallback(async () => {
-    await copyText(text);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
-  }, [text]);
+/** 高分辨率图片导出：传入行数据 + 到手金额，下载为 PNG */
+export function exportSalaryImage(params: {
+  title: string;
+  rows: { label: string; amount: number; kind?: "income" | "deduction" | "total" }[];
+  netPay: number;
+}) {
+  const { title, rows, netPay } = params;
+  const scale = 3; // 3x for crisp Retina
+  const fontFam = '"Inter", "Noto Sans SC", system-ui, sans-serif';
+  const pad = 32 * scale;
+  const rowH = 28 * scale;
+  const col1 = 260 * scale;
+  const col2 = 160 * scale;
+  const w = col1 + col2 + pad * 2;
+  const h = pad + 40 * scale + rowH + rowH * rows.length + rowH + rowH + pad;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d")!;
+
+  // bg
+  ctx.fillStyle = "#fafbfc";
+  ctx.fillRect(0, 0, w, h);
+  // white card
+  ctx.fillStyle = "#ffffff";
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 1 * scale;
+  const m = 8 * scale;
+  roundRect(ctx, m, m, w - m * 2, h - m * 2, 8 * scale);
+  ctx.fill();
+  ctx.stroke();
+
+  let y = pad + 36 * scale;
+  // title
+  ctx.fillStyle = "#0f172a";
+  ctx.font = `bold ${18*scale}px ${fontFam}`;
+  ctx.textAlign = "left";
+  ctx.fillText(title, pad, y);
+
+  // divider
+  y += 12 * scale;
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.beginPath();
+  ctx.moveTo(pad, y);
+  ctx.lineTo(w - pad, y);
+  ctx.stroke();
+  y += 16 * scale;
+
+  // table
+  const drawRow = (label: string, amount: string, kind?: string) => {
+    ctx.font = `${14*scale}px ${fontFam}`;
+    ctx.textAlign = "left";
+    ctx.fillStyle = kind === "total" ? "#0f172a" : "#475569";
+    if (kind === "total") ctx.font = `bold ${14*scale}px ${fontFam}`;
+    ctx.fillText(label, pad, y);
+    ctx.textAlign = "right";
+    if (kind === "income") ctx.fillStyle = "#059669";
+    else if (kind === "deduction") ctx.fillStyle = "#e11d48";
+    else ctx.fillStyle = "#0f172a";
+    if (kind === "total") ctx.font = `bold ${14*scale}px ${fontFam}`;
+    ctx.fillText(amount, w - pad, y);
+  };
+
+  // alternating bg for rows
+  rows.forEach((r, i) => {
+    if (i % 2 === 0 && r.kind !== "total") {
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(pad - 4 * scale, y - 18 * scale, w - pad * 2 + 8 * scale, rowH);
+    }
+    drawRow(r.label, fmt(r.amount), r.kind);
+    y += rowH;
+  });
+
+  // divider before net
+  y += 4 * scale;
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.beginPath();
+  ctx.moveTo(pad, y);
+  ctx.lineTo(w - pad, y);
+  ctx.stroke();
+  y += 12 * scale;
+
+  // net pay highlight
+  ctx.fillStyle = "#ecfdf5";
+  ctx.fillRect(pad - 4 * scale, y - 18 * scale, w - pad * 2 + 8 * scale, rowH);
+  ctx.font = `bold ${16*scale}px ${fontFam}`;
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#0f172a";
+  ctx.fillText("到手工资", pad, y);
+  ctx.textAlign = "right";
+  ctx.fillStyle = "#059669";
+  ctx.fillText(fmt(netPay), w - pad, y);
+
+  canvas.toBlob((b) => {
+    if (!b) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b);
+    a.download = `薪资_${new Date().toISOString().slice(0, 10)}.png`;
+    a.click();
+  }, "image/png");
+}
+
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
+/** 导出按钮 */
+export function ExportBtn({ onClick }: { onClick: () => void }) {
   return (
-    <button
-      onClick={copy}
-      className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition-colors"
-    >
-      {copied ? "已复制！" : label}
-    </button>
+    <div className="flex justify-center">
+      <button
+        onClick={onClick}
+        className="px-6 py-2.5 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition-colors"
+      >
+        保存为图片
+      </button>
+    </div>
   );
 }
