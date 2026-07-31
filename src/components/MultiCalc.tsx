@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import type { ShiftType } from "../types";
 import type { UserSettings } from "../utils/settings";
 import { calcMultiMonth } from "../utils/salary";
-import { copyText, fmt, salaryConfig, WEEKDAY_NAMES } from "../utils/format";
+import { fmt, salaryConfig, WEEKDAY_NAMES } from "../utils/format";
 import { Card, INPUT } from "./ui";
 
 interface YearMonth {
@@ -54,7 +54,6 @@ export function MultiCalc({
   const noSocial = settings.noSocial;
   const noTax = settings.noTax;
   const [page, setPage] = useState(0);
-  const [copied, setCopied] = useState(false);
 
   const s = parseYM(start, 2026, 1);
   const e = parseYM(end, 2026, 12);
@@ -94,17 +93,46 @@ export function MultiCalc({
     { label: "月均到手", amount: summary.averageNet, kind: "income", big: true },
   ];
 
-  async function copy() {
-    const lines = ["【多月工资汇总】"];
-    summary.results.forEach((r) => {
-      lines.push(
-        `${r.year}-${String(r.month).padStart(2, "0")} | 工作日 ${r.totalWorkDays}(A${r.aDayCount}/B${r.bDayCount}/F${r.fDayCount}) | 税前 ${fmt(r.grossPay)} | 社保 ${fmt(r.socialInsurance)} | 个税 ${fmt(r.tax)} | 到手 ${fmt(r.netPay)}`,
-      );
+  async function saveImage() {
+    const rows = summary.results;
+    const pad = 24;
+    const rowH = 22;
+    const colW = [58, 44, 32, 32, 32, 36, 72, 72, 72, 72];
+    const headers = ["月份","工作日","A班","B班","F班","班次","税前","社保","个税","到手"];
+    const sumLabels = [`总税前：${fmt(summary.totalGross)}`,`总社保：${fmt(summary.totalSocial)}`,`总个税：${fmt(summary.totalTax)}`,`总到手：${fmt(summary.totalNet)}`,`月均到手：${fmt(summary.averageNet)}`];
+    const w = colW.reduce((a,b) => a+b, 0) + pad * 2;
+    const h = pad * 2 + rowH + rowH * rows.length + rowH * sumLabels.length + pad;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d")!;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "#334155";
+    ctx.font = "bold 13px sans-serif";
+    let y = pad + rowH;
+    let x = pad;
+    headers.forEach((hdr, i) => { ctx.fillText(hdr, x, y); x += colW[i]; });
+    ctx.font = "12px sans-serif";
+    y += rowH;
+    rows.forEach((r) => {
+      x = pad;
+      const cols = [`${r.year}/${String(r.month).padStart(2,"0")}`, String(r.totalWorkDays), String(r.aDayCount), String(r.bDayCount), String(r.fDayCount), r.shiftType === "night" ? "夜班" : "白班", fmt(r.grossPay), "-"+fmt(r.socialInsurance), "-"+fmt(r.tax), fmt(r.netPay)];
+      cols.forEach((c, i) => { ctx.fillText(c, x, y); x += colW[i]; });
+      y += rowH;
     });
-    lines.push("", `总税前：${fmt(summary.totalGross)}`, `总社保：${fmt(summary.totalSocial)}`, `总个税：${fmt(summary.totalTax)}`, `总到手：${fmt(summary.totalNet)}`, `月均到手：${fmt(summary.averageNet)}`);
-    await copyText(lines.join("\n"));
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
+    ctx.font = "bold 12px sans-serif";
+    sumLabels.forEach((l) => { ctx.fillText(l, pad, y); y += rowH; });
+
+    canvas.toBlob((b) => {
+      if (!b) return;
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(b);
+      const y0 = rows.length > 0 ? rows[0].year : new Date().getFullYear();
+      a.download = `薪资汇总_${y0}.png`;
+      a.click();
+    });
   }
 
   return (
@@ -286,10 +314,10 @@ export function MultiCalc({
             </div>
 
             <button
-              onClick={copy}
+              onClick={saveImage}
               className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition-colors"
             >
-              {copied ? "已复制！" : "复制汇总文本"}
+              保存为图片
             </button>
           </>
         )}

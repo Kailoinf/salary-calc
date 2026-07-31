@@ -8,7 +8,7 @@ import {
   SOCIAL_INSURANCE,
 } from "../utils/salary";
 import { num, salaryConfig } from "../utils/format";
-import { Card, INPUT, MoneyTable, NetPay } from "./ui";
+import { Card, Field, INPUT, MoneyTable, NetPay } from "./ui";
 
 export function ManualCalc({
   settings,
@@ -86,8 +86,7 @@ export function ManualCalc({
           {hourFields.map((f, i) => {
             const key = String(i);
             return (
-              <label key={f.label} className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
-                {f.label}
+              <Field key={f.label} label={f.label}>
                 <input
                   type="number"
                   min={0}
@@ -100,12 +99,11 @@ export function ManualCalc({
                   onFocus={() => touched.current.add(key)}
                   className={INPUT}
                 />
-              </label>
+              </Field>
             );
           })}
         </div>
-        <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400 pt-3">
-          奖励与惩罚
+        <Field label="奖励与惩罚" className="pt-3">
           <input
             type="number"
             step="10"
@@ -117,7 +115,7 @@ export function ManualCalc({
             onFocus={() => touched.current.add("adj")}
             className={INPUT}
           />
-        </label>
+        </Field>
       </Card>
 
       <Card title="计算结果">

@@ -1,6 +1,6 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 import type { UserSettings } from "../utils/settings";
-import { fmt, yuanToCents } from "../utils/format";
+import { copyText, fmt, WEEKDAY_NAMES, yuanToCents } from "../utils/format";
 
 export const INPUT =
   "px-2 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-black text-sm focus:border-sky-500 dark:focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-500 dark:focus:ring-sky-400 w-full";
@@ -169,5 +169,66 @@ export function DeductionToggles({
       <Toggle label="不交社保" checked={noSocial} onChange={onSocial} />
       <Toggle label="不交个税" checked={noTax} onChange={onTax} />
     </div>
+  );
+}
+
+/** 通用输入字段：label + 任意 input/select 子元素 */
+export function Field({
+  label,
+  className,
+  children,
+}: {
+  label: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <label className={"flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400" + (className ? " " + className : "")}>
+      {label}
+      {children}
+    </label>
+  );
+}
+
+/** 周几多选切换 */
+export function WeekdayToggles({
+  selected,
+  onChange,
+}: {
+  selected: number[];
+  onChange: (a: number[]) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-3">
+      {WEEKDAY_NAMES.map((n, i) => (
+        <label key={i} className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
+          <input
+            type="checkbox"
+            checked={selected.includes(i)}
+            onChange={() => onChange(selected.includes(i) ? selected.filter((x) => x !== i) : [...selected, i])}
+            className="rounded"
+          />
+          {n}
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/** 复制按钮，点击后显示 2 秒回馈 */
+export function CopyButton({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = useCallback(async () => {
+    await copyText(text);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 2000);
+  }, [text]);
+  return (
+    <button
+      onClick={copy}
+      className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition-colors"
+    >
+      {copied ? "已复制！" : label}
+    </button>
   );
 }
