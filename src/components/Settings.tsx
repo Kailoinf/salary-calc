@@ -37,12 +37,9 @@ export function Settings({
 
   return (
     <div className="space-y-4">
-      <Card title="💰 薪资构成">
-        <SalaryFields settings={settings} onSettings={onSettings} />
-      </Card>
-
       <Card title="⚙️ 全局设置">
-        <div className="space-y-3">
+        <SalaryFields settings={settings} onSettings={onSettings} />
+        <div className="space-y-3 pt-2">
           <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             C班休息日
             <select

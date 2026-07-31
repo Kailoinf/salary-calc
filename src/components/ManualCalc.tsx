@@ -81,7 +81,7 @@ export function ManualCalc({
 
   return (
     <div className="space-y-4">
-      <Card title="⏱️ 工时输入">
+      <Card title="⏱️ 工时与奖励">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {hourFields.map((f, i) => {
             const key = String(i);
@@ -104,11 +104,8 @@ export function ManualCalc({
             );
           })}
         </div>
-      </Card>
-
-      <div className="grid grid-cols-1 gap-3">
-        <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
-          奖励/惩罚（正=奖励，负=惩罚，单位：元）
+        <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400 pt-3">
+          奖励与惩罚
           <input
             type="number"
             step="10"
@@ -121,7 +118,7 @@ export function ManualCalc({
             className={INPUT}
           />
         </label>
-      </div>
+      </Card>
 
       <Card title="📊 计算结果">
         <MoneyTable
