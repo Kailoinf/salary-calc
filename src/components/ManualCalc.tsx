@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { UserSettings } from "../utils/settings";
 import {
   calcBaseHourlyRate,
@@ -24,6 +24,7 @@ export function ManualCalc({
   const [nights, setNights] = useState("0");
   const [noSocial, setNoSocial] = useState(false);
   const [noTax, setNoTax] = useState(false);
+  const touched = useRef(new Set<string>());
 
   const r = useMemo(() => {
     const config = salaryConfig(settings);
@@ -49,30 +50,36 @@ export function ManualCalc({
   }, [settings, overtime, bhours, fhours, nights, noSocial, noTax]);
 
   const hourFields = [
-    { label: "加班小时(A班×1.5)", step: "0.5", value: overtime, set: setOvertime, def: "72" },
-    { label: "B班小时(×2)", step: "0.5", value: bhours, set: setBhours, def: "44" },
-    { label: "F班小时(×3)", step: "0.5", value: fhours, set: setFhours, def: "0" },
-    { label: "夜班天数", step: "1", value: nights, set: setNights, def: "0" },
+    { label: "加班小时(A班×1.5)", step: "0.5", value: overtime, set: setOvertime },
+    { label: "B班小时(×2)", step: "0.5", value: bhours, set: setBhours },
+    { label: "F班小时(×3)", step: "0.5", value: fhours, set: setFhours },
+    { label: "夜班天数", step: "1", value: nights, set: setNights },
   ];
 
   return (
     <div className="space-y-4">
       <Card title="⏱️ 工时输入">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {hourFields.map((f) => (
-            <label key={f.label} className="flex flex-col gap-1 text-sm text-slate-600">
-              {f.label}
-              <input
-                type="number"
-                min={0}
-                step={f.step}
-                value={f.value}
-                onChange={(e) => f.set(e.target.value)}
-                onBlur={(e) => { if ((e.target as any).value === "") f.set(f.def) }}
-                className={INPUT}
-              />
-            </label>
-          ))}
+          {hourFields.map((f, i) => {
+            const key = String(i);
+            return (
+              <label key={f.label} className="flex flex-col gap-1 text-sm text-slate-600">
+                {f.label}
+                <input
+                  type="number"
+                  min={0}
+                  step={f.step}
+                  value={f.value}
+                  onChange={(e) => { f.set(e.target.value); touched.current.add(key); }}
+                  onBlur={(e) => {
+                    if (touched.current.has(key) && (e.target as any).value === "") f.set("0");
+                  }}
+                  onFocus={() => touched.current.add(key)}
+                  className={INPUT}
+                />
+              </label>
+            );
+          })}
         </div>
       </Card>
 
