@@ -2,8 +2,8 @@ import { type ReactNode, useState } from "react";
 import type { UserSettings } from "../utils/settings";
 import { fmt, yuanToCents } from "../utils/format";
 
-const INPUT =
-  "px-2 py-1.5 rounded-md border border-slate-300 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 w-full";
+export const INPUT =
+  "px-2 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm focus:border-sky-500 dark:focus:border-sky-400 focus:outline-none focus:ring-1 focus:ring-sky-500 dark:focus:ring-sky-400 w-full";
 
 /** 白色圆角分区卡片 */
 export function Card({
@@ -14,8 +14,8 @@ export function Card({
   children: ReactNode;
 }) {
   return (
-    <section className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-3">
-      {title && <h2 className="font-semibold text-slate-900">{title}</h2>}
+    <section className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm space-y-3">
+      {title && <h2 className="font-semibold text-slate-900 dark:text-slate-100">{title}</h2>}
       {children}
     </section>
   );
@@ -47,7 +47,7 @@ export function SalaryFields({
         return (
           <label
             key={f.key}
-            className="flex flex-col gap-1 text-sm text-slate-600"
+            className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400"
           >
             {f.label}
             <input
@@ -89,20 +89,20 @@ export function MoneyTable({ rows }: { rows: Row[] }) {
           <tr
             key={r.label}
             className={
-              r.kind === "total" ? "border-y border-slate-200 font-bold" : ""
+              r.kind === "total" ? "border-y border-slate-200 dark:border-slate-700 font-bold" : ""
             }
           >
-            <td className="py-1.5 text-slate-700">{r.label}</td>
+            <td className="py-1.5 text-slate-700 dark:text-slate-300">{r.label}</td>
             <td
               className={
                 "py-1.5 text-right tabular-nums " +
                 (r.kind === "income"
-                  ? "text-emerald-600"
+                  ? "text-emerald-600 dark:text-emerald-400"
                   : r.kind === "deduction"
-                    ? "text-rose-500"
+                    ? "text-rose-500 dark:text-rose-400"
                     : r.kind === "total"
-                      ? "text-slate-900"
-                      : "text-slate-800")
+                      ? "text-slate-900 dark:text-slate-100"
+                      : "text-slate-800 dark:text-slate-200")
               }
             >
               {r.kind === "deduction" ? "-" : ""}
@@ -124,9 +124,9 @@ export function NetPay({
   amount: number;
 }) {
   return (
-    <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
-      <span className="font-medium text-emerald-800">{label}</span>
-      <span className="text-xl font-bold text-emerald-700 tabular-nums">
+    <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 rounded-lg px-4 py-3">
+      <span className="font-medium text-emerald-800 dark:text-emerald-300">{label}</span>
+      <span className="text-xl font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
         {fmt(amount)}
       </span>
     </div>
@@ -154,7 +154,7 @@ export function DeductionToggles({
     checked: boolean;
     onChange: (b: boolean) => void;
   }) => (
-    <label className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+    <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
       <input
         type="checkbox"
         checked={checked}

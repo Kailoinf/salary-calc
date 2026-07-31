@@ -3,10 +3,7 @@ import type { ShiftType } from "../types";
 import type { UserSettings } from "../utils/settings";
 import { calcMultiMonth } from "../utils/salary";
 import { copyText, fmt, salaryConfig, WEEKDAY_NAMES } from "../utils/format";
-import { Card, DeductionToggles, SalaryFields } from "./ui";
-
-const INPUT =
-  "px-2 py-1.5 rounded-md border border-slate-300 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 w-full";
+import { Card, DeductionToggles, INPUT, SalaryFields } from "./ui";
 
 interface YearMonth {
   year: number;
@@ -114,11 +111,11 @@ export function MultiCalc({
     <div className="space-y-4">
       <Card title="📅 日期区间">
         <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1 text-sm text-slate-600">
+          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             起始年月
             <input type="month" value={start} onChange={(e) => setStart(e.target.value)} className={INPUT} />
           </label>
-          <label className="flex flex-col gap-1 text-sm text-slate-600">
+          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             结束年月
             <input type="month" value={end} onChange={(e) => setEnd(e.target.value)} className={INPUT} />
           </label>
@@ -132,17 +129,17 @@ export function MultiCalc({
 
       <Card title="🔄 排班配置">
         <div className="space-y-2">
-          <label className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+          <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
             <input type="radio" checked={restdayMode === "uniform"} onChange={() => setRestdayMode("uniform")} />
             所有月份统一
           </label>
-          <label className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+          <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
             <input type="radio" checked={restdayMode === "individual"} onChange={() => setRestdayMode("individual")} />
             每月单独编辑
           </label>
         </div>
         {restdayMode === "uniform" ? (
-          <label className="flex flex-col gap-1 text-sm text-slate-600 sm:w-48">
+          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400 sm:w-48">
             C班(休息日)周几
             <select value={restdayUniform} onChange={(e) => setRestdayUniform(Number(e.target.value))} className={INPUT}>
               {WEEKDAY_NAMES.map((n, i) => (<option key={i} value={i}>{n}</option>))}
@@ -151,7 +148,7 @@ export function MultiCalc({
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {months.map((mm) => (
-              <label key={ymKey(mm.year, mm.month)} className="flex flex-col gap-1 text-xs text-slate-600">
+              <label key={ymKey(mm.year, mm.month)} className="flex flex-col gap-1 text-xs text-slate-600 dark:text-slate-400">
                 {mm.year}年{mm.month}月
                 <select
                   value={restdayInd[ymKey(mm.year, mm.month)] ?? 3}
@@ -166,28 +163,28 @@ export function MultiCalc({
         )}
 
         <div className="space-y-2">
-          <label className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+          <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
             <input type="radio" checked={shiftMode === "flip"} onChange={() => setShiftMode("flip")} />
             自动轮换（白→夜→白→夜）
           </label>
-          <label className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+          <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
             <input type="radio" checked={shiftMode === "individual"} onChange={() => setShiftMode("individual")} />
             每月自定义
           </label>
         </div>
         {shiftMode === "flip" ? (
-          <label className="flex flex-col gap-1 text-sm text-slate-600 sm:w-48">
+          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400 sm:w-48">
             起始班次
             <select value={shiftFlipFirst} onChange={(e) => setShiftFlipFirst(e.target.value as ShiftType)} className={INPUT}>
               <option value="day">白班</option>
               <option value="night">夜班</option>
             </select>
-            <span className="text-xs text-slate-400">（之后每月自动翻转）</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500">（之后每月自动翻转）</span>
           </label>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {months.map((mm) => (
-              <label key={ymKey(mm.year, mm.month)} className="flex flex-col gap-1 text-xs text-slate-600">
+              <label key={ymKey(mm.year, mm.month)} className="flex flex-col gap-1 text-xs text-slate-600 dark:text-slate-400">
                 {mm.year}年{mm.month}月
                 <select
                   value={shiftInd[ymKey(mm.year, mm.month)] ?? "day"}
@@ -203,10 +200,10 @@ export function MultiCalc({
         )}
 
         <div>
-          <h3 className="text-sm font-medium text-slate-700 mb-2">不加班周几</h3>
+          <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">不加班周几</h3>
           <div className="flex flex-wrap gap-3">
             {WEEKDAY_NAMES.map((n, i) => (
-              <label key={i} className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+              <label key={i} className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
                 <input
                   type="checkbox"
                   checked={noOtWeekdays.includes(i)}
@@ -222,13 +219,13 @@ export function MultiCalc({
 
       <Card title="📊 多月汇总">
         {summary.results.length === 0 ? (
-          <p className="text-sm text-slate-400">请选择有效的日期区间（结束月份需不早于起始月份）。</p>
+          <p className="text-sm text-slate-400 dark:text-slate-500">请选择有效的日期区间（结束月份需不早于起始月份）。</p>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-slate-500 border-b border-slate-200">
+                  <tr className="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
                     <th className="py-1.5 text-left font-medium">月份</th>
                     <th className="py-1.5 text-center font-medium">工作日</th>
                     <th className="py-1.5 text-center font-medium">A班</th>
@@ -243,7 +240,7 @@ export function MultiCalc({
                 </thead>
                 <tbody>
                   {pageItems.map((r) => (
-                    <tr key={`${r.year}-${r.month}`} className="border-b border-slate-100">
+                    <tr key={`${r.year}-${r.month}`} className="border-b border-slate-100 dark:border-slate-800">
                       <td className="py-1.5">{r.year}/{String(r.month).padStart(2, "0")}</td>
                       <td className="py-1.5 text-center">{r.totalWorkDays}</td>
                       <td className="py-1.5 text-center">{r.aDayCount}</td>
@@ -251,9 +248,9 @@ export function MultiCalc({
                       <td className="py-1.5 text-center">{r.fDayCount}</td>
                       <td className="py-1.5 text-center">{r.shiftType === "night" ? "夜班" : "白班"}</td>
                       <td className="py-1.5 text-right tabular-nums">{fmt(r.grossPay)}</td>
-                      <td className="py-1.5 text-right tabular-nums text-rose-500">-{fmt(r.socialInsurance)}</td>
-                      <td className="py-1.5 text-right tabular-nums text-rose-500">-{fmt(r.tax)}</td>
-                      <td className="py-1.5 text-right tabular-nums text-emerald-600">{fmt(r.netPay)}</td>
+                      <td className="py-1.5 text-right tabular-nums text-rose-500 dark:text-rose-400">-{fmt(r.socialInsurance)}</td>
+                      <td className="py-1.5 text-right tabular-nums text-rose-500 dark:text-rose-400">-{fmt(r.tax)}</td>
+                      <td className="py-1.5 text-right tabular-nums text-emerald-600 dark:text-emerald-400">{fmt(r.netPay)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -268,7 +265,7 @@ export function MultiCalc({
                     onClick={() => setPage(i)}
                     className={
                       "px-3 py-1 rounded-md text-xs " +
-                      (i === cur ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")
+                      (i === cur ? "bg-sky-600 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600")
                     }
                   >
                     第 {i + 1} 页
@@ -279,12 +276,12 @@ export function MultiCalc({
 
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {summaryItems.map((it) => (
-                <div key={it.label} className="bg-slate-50 rounded-lg px-3 py-2 text-center">
-                  <div className="text-xs text-slate-500">{it.label}</div>
+                <div key={it.label} className="bg-slate-50 dark:bg-slate-800 rounded-lg px-3 py-2 text-center">
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{it.label}</div>
                   <div
                     className={
                       "font-semibold tabular-nums " +
-                      (it.kind === "income" ? "text-emerald-600" : it.kind === "deduction" ? "text-rose-500" : "text-slate-800") +
+                      (it.kind === "income" ? "text-emerald-600 dark:text-emerald-400" : it.kind === "deduction" ? "text-rose-500 dark:text-rose-400" : "text-slate-800 dark:text-slate-200") +
                       (it.big ? " text-lg" : "")
                     }
                   >

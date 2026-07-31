@@ -7,13 +7,11 @@ import { copyText, fmt, num, salaryConfig, WEEKDAY_NAMES } from "../utils/format
 import {
   Card,
   DeductionToggles,
+  INPUT,
   MoneyTable,
   NetPay,
   SalaryFields,
 } from "./ui";
-
-const INPUT =
-  "px-2 py-1.5 rounded-md border border-slate-300 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 w-full";
 
 const toggle = (arr: number[], v: number) =>
   arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
@@ -103,15 +101,15 @@ export function SingleCalc({
     <div className="space-y-4">
       <Card title="📅 日期与排班">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <label className="flex flex-col gap-1 text-sm text-slate-600">
+          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             年份
             <input type="number" min={2020} max={2030} value={year} onChange={(e) => setYear(e.target.value)} className={INPUT} />
           </label>
-          <label className="flex flex-col gap-1 text-sm text-slate-600">
+          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             月份
             <input type="number" min={1} max={12} value={month} onChange={(e) => setMonth(e.target.value)} className={INPUT} />
           </label>
-          <label className="flex flex-col gap-1 text-sm text-slate-600">
+          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             C班(休息日)周几
             <select value={restDayWeekday} onChange={(e) => setRestDayWeekday(Number(e.target.value))} className={INPUT}>
               {WEEKDAY_NAMES.map((n, i) => (
@@ -119,7 +117,7 @@ export function SingleCalc({
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-sm text-slate-600">
+          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             班次
             <select value={shiftType} onChange={(e) => setShiftType(e.target.value as ShiftType)} className={INPUT}>
               <option value="day">白班</option>
@@ -131,10 +129,10 @@ export function SingleCalc({
 
       <Card title="🚫 不加班 / B班8h">
         <div>
-          <h3 className="text-sm font-medium text-slate-700 mb-2">不加班 — 按周几</h3>
+          <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">不加班 — 按周几</h3>
           <div className="flex flex-wrap gap-3">
             {WEEKDAY_NAMES.map((n, i) => (
-              <label key={i} className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+              <label key={i} className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
                 <input type="checkbox" checked={noOtWeekdays.includes(i)} onChange={() => setNoOtWeekdays((a) => toggle(a, i))} className="rounded" />
                 {n}
               </label>
@@ -142,16 +140,16 @@ export function SingleCalc({
           </div>
         </div>
         <div>
-          <h3 className="text-sm font-medium text-slate-700 mb-2">不加班 — 按日期（取消勾选=不加班）</h3>
+          <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">不加班 — 按日期（取消勾选=不加班）</h3>
           {aDays.length === 0 ? (
-            <p className="text-sm text-slate-400">本月无 A 班日。</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500">本月无 A 班日。</p>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               {aDays.map((d) => {
                 const date = d.date();
                 const overtime = !noOtDates.includes(date);
                 return (
-                  <label key={date} className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+                  <label key={date} className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
                     <input
                       type="checkbox"
                       checked={overtime}
@@ -168,15 +166,15 @@ export function SingleCalc({
           )}
         </div>
         <div>
-          <h3 className="text-sm font-medium text-slate-700 mb-2">B班仅8h（默认11h）</h3>
+          <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">B班仅8h（默认11h）</h3>
           {bDays.length === 0 ? (
-            <p className="text-sm text-slate-400">本月无 B 班日。</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500">本月无 B 班日。</p>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               {bDays.map((d) => {
                 const date = d.date();
                 return (
-                  <label key={date} className="inline-flex items-center gap-1.5 text-sm text-slate-600">
+                  <label key={date} className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
                     <input type="checkbox" checked={bDay8h.includes(date)} onChange={() => setBDay8h((a) => toggle(a, date))} className="rounded" />
                     {date}日({WEEKDAY_NAMES[d.day()]})
                   </label>
@@ -195,9 +193,9 @@ export function SingleCalc({
       <Card title="📊 计算结果">
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {stats.map((s) => (
-            <div key={s.label} className="bg-slate-50 rounded-lg px-2 py-2 text-center">
-              <div className="text-xs text-slate-500">{s.label}</div>
-              <div className="font-semibold text-slate-800 tabular-nums">{s.val}</div>
+            <div key={s.label} className="bg-slate-50 dark:bg-slate-800 rounded-lg px-2 py-2 text-center">
+              <div className="text-xs text-slate-500 dark:text-slate-400">{s.label}</div>
+              <div className="font-semibold text-slate-800 dark:text-slate-200 tabular-nums">{s.val}</div>
             </div>
           ))}
         </div>

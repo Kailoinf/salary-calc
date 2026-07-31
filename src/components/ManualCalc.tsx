@@ -6,10 +6,7 @@ import {
   SOCIAL_INSURANCE,
 } from "../utils/salary";
 import { num, salaryConfig } from "../utils/format";
-import { Card, DeductionToggles, MoneyTable, NetPay, SalaryFields } from "./ui";
-
-const INPUT =
-  "px-2 py-1.5 rounded-md border border-slate-300 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 w-full";
+import { Card, DeductionToggles, INPUT, MoneyTable, NetPay, SalaryFields } from "./ui";
 
 export function ManualCalc({
   settings,
@@ -63,7 +60,7 @@ export function ManualCalc({
           {hourFields.map((f, i) => {
             const key = String(i);
             return (
-              <label key={f.label} className="flex flex-col gap-1 text-sm text-slate-600">
+              <label key={f.label} className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
                 {f.label}
                 <input
                   type="number"

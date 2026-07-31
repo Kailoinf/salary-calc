@@ -1,9 +1,6 @@
 import type { UserSettings } from "../utils/settings";
 import { yuanToCents } from "../utils/format";
-import { Card, SalaryFields } from "./ui";
-
-const INPUT =
-  "px-2 py-1.5 rounded-md border border-slate-300 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 w-full";
+import { Card, INPUT, SalaryFields } from "./ui";
 
 export function Settings({
   settings,
@@ -22,7 +19,7 @@ export function Settings({
 
       <Card title="🏥 社保个税">
         <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1 text-sm text-slate-600">
+          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             个税起征点
             <input
               type="number"
@@ -36,7 +33,7 @@ export function Settings({
               className={INPUT}
             />
           </label>
-          <label className="flex flex-col gap-1 text-sm text-slate-600">
+          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             个税税率
             <input
               type="number"
@@ -54,7 +51,7 @@ export function Settings({
         </div>
         <button
           onClick={onReset}
-          className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition-colors"
+          className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
         >
           ↩️ 恢复默认
         </button>
@@ -62,11 +59,11 @@ export function Settings({
 
       <Card title="📝 制作信息">
         <div className="text-center space-y-2">
-          <p className="text-sm text-slate-500 font-medium">Made by Gakusyun</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Made by Gakusyun</p>
           <div className="flex justify-center gap-2 flex-wrap">
-            <span className="text-xs bg-sky-50 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100">Hermes</span>
-            <span className="text-xs bg-sky-50 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100">DeepSeek V4 Pro</span>
-            <span className="text-xs bg-sky-50 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100">GLM 5.2</span>
+            <span className="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">Hermes</span>
+            <span className="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">DeepSeek V4 Pro</span>
+            <span className="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">GLM 5.2</span>
           </div>
         </div>
       </Card>

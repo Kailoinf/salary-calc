@@ -36,7 +36,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white text-slate-800">
+    <div className="min-h-screen bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
       <div className="mx-auto max-w-4xl px-4 py-6 space-y-5">
         <Header />
         <Tabs active={tab} onChange={setTab} />
@@ -58,7 +58,7 @@ export default function App() {
           />
         )}
 
-        <footer className="text-center text-xs text-slate-300 pt-4 space-y-1">
+        <footer className="text-center text-xs text-slate-300 dark:text-slate-600 pt-4 space-y-1">
           <div>
             <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer" className="hover:text-slate-400">鄂ICP备2024069158号</a>
           </div>
