@@ -52,8 +52,7 @@ export function SalaryFields({
             value={settings[f.key] / 100}
             onChange={(e) => {
               const raw = e.target.value;
-              if (raw === "") return;
-              const v = Number(raw);
+              const v = raw === "" ? 0 : Number(raw);
               if (Number.isFinite(v))
                 onSettings({ ...settings, [f.key]: yuanToCents(v) });
             }}
