@@ -200,9 +200,9 @@ export function SingleCalc({
         <MoneyTable
           rows={[
             { label: "固定薪资合计", amount: r.fixedTotal },
-            { label: "A班加班(3h×1.5倍)", amount: r.weekdayOvertime, kind: "income" },
+            { label: `A班加班(${(r.aDayCount - r.noOvertimeCount) * 3}h×1.5)`, amount: r.weekdayOvertime, kind: "income" },
             { label: `B班双倍(${r.bDayCount - r.bDay8hCount}×11h ${r.bDay8hCount}×8h)`, amount: r.tuesdayDoublePay, kind: "income" },
-            { label: "F班节假日(11h×3倍)", amount: r.holidayExtra, kind: "income" },
+            { label: `F班节假日(${r.fDayCount * 11}h×3)`, amount: r.holidayExtra, kind: "income" },
             { label: "夜班补贴", amount: r.nightSubsidy, kind: "income" },
             { label: "税前总工资", amount: r.grossPay, kind: "total" },
             { label: "社保扣除", amount: r.socialInsurance, kind: "deduction" },
