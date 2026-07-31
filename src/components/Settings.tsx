@@ -59,6 +59,12 @@ export function Settings({
           ↩️ 恢复默认
         </button>
       </Card>
+
+      <Card title="📝 制作信息">
+        <p className="text-sm text-slate-500">
+          由 Gakusyun · Hermes · GLM 5.2 · DeepSeek V4 Pro 制作
+        </p>
+      </Card>
     </div>
   );
 }

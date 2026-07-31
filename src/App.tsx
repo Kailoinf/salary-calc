@@ -58,8 +58,9 @@ export default function App() {
           />
         )}
 
-        <footer className="text-center text-xs text-slate-300 pt-4">
-          © Gakusyun · 工资计算器
+        <footer className="text-center text-xs text-slate-300 pt-4 space-x-3">
+          <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer" className="hover:text-slate-400">鄂ICP备2024069158号</a>
+          <a href="https://beian.mps.gov.cn" target="_blank" rel="noreferrer" className="hover:text-slate-400">鄂公网安备42050002420933号</a>
         </footer>
       </div>
     </div>
