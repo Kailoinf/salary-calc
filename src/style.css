@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+html {
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar {
+  display: none;
+}
+
 .scrollbar-none {
   scrollbar-width: none;
 }
