@@ -121,7 +121,10 @@ export function ManualCalc({
       <Card title="计算结果" action={<ExportBtn onClick={() => exportSalaryImage({
         title: "手动算薪",
         rows: [
-          { label: "固定薪资合计", amount: r.fixedTotal },
+          { label: "基础工资", amount: salaryConfig(settings).baseSalary },
+          { label: "岗位工资", amount: salaryConfig(settings).positionPay },
+          { label: "全勤奖", amount: salaryConfig(settings).fullAttendanceBonus },
+          { label: "绩效工资", amount: salaryConfig(settings).performancePay },
           { label: `A班加班(${r.ot}h×1.5)`, amount: r.otPay, kind: "income" },
           { label: `B班(${r.bh}h×2)`, amount: r.bPay, kind: "income" },
           { label: `F班(${r.fh}h×3)`, amount: r.fPay, kind: "income" },

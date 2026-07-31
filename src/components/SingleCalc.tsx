@@ -76,8 +76,12 @@ export function SingleCalc({
     { label: "班次", val: r.shiftType === "night" ? "夜班" : "白班" },
   ];
 
+  const cfg = salaryConfig(settings);
   const imgRows = [
-    { label: "固定薪资合计", amount: r.fixedTotal },
+    { label: "基础工资", amount: cfg.baseSalary },
+    { label: "岗位工资", amount: cfg.positionPay },
+    { label: "全勤奖", amount: cfg.fullAttendanceBonus },
+    { label: "绩效工资", amount: cfg.performancePay },
     { label: `A班加班(${(r.aDayCount - r.noOvertimeCount) * 3}h×1.5)`, amount: r.weekdayOvertime, kind: "income" as const },
     { label: `B班双倍(${r.bDayCount - r.bDay8hCount}×11h ${r.bDay8hCount}×8h)`, amount: r.tuesdayDoublePay, kind: "income" as const },
     { label: `F班节假日(${r.fDayCount * 11}h×3)`, amount: r.holidayExtra, kind: "income" as const },

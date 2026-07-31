@@ -229,14 +229,16 @@ export function exportSalaryImage(params: {
   netPay: number;
 }) {
   const { title, rows, netPay } = params;
-  const scale = 3; // 3x for crisp Retina
+  const scale = 3;
   const fontFam = '"Inter", "Noto Sans SC", system-ui, sans-serif';
   const pad = 32 * scale;
   const rowH = 28 * scale;
   const col1 = 260 * scale;
   const col2 = 160 * scale;
   const w = col1 + col2 + pad * 2;
-  const h = pad + 40 * scale + rowH + rowH * rows.length + rowH + rowH + pad;
+  // filter out zero rows
+  const visibleRows = rows.filter(r => r.amount !== 0);
+  const h = pad + 40 * scale + rowH + rowH * visibleRows.length + rowH + rowH + pad;
 
   const canvas = document.createElement("canvas");
   canvas.width = w;
@@ -244,18 +246,10 @@ export function exportSalaryImage(params: {
   const ctx = canvas.getContext("2d")!;
 
   // bg
-  ctx.fillStyle = "#fafbfc";
-  ctx.fillRect(0, 0, w, h);
-  // white card
   ctx.fillStyle = "#ffffff";
-  ctx.strokeStyle = "#e2e8f0";
-  ctx.lineWidth = 1 * scale;
-  const m = 8 * scale;
-  roundRect(ctx, m, m, w - m * 2, h - m * 2, 8 * scale);
-  ctx.fill();
-  ctx.stroke();
+  ctx.fillRect(0, 0, w, h);
 
-  let y = pad + 36 * scale;
+  let y = pad;
   // title
   ctx.fillStyle = "#0f172a";
   ctx.font = `bold ${18*scale}px ${fontFam}`;
@@ -287,7 +281,7 @@ export function exportSalaryImage(params: {
   };
 
   // alternating bg for rows
-  rows.forEach((r, i) => {
+  visibleRows.forEach((r, i) => {
     if (i % 2 === 0 && r.kind !== "total") {
       ctx.fillStyle = "#f8fafc";
       ctx.fillRect(pad - 4 * scale, y - 18 * scale, w - pad * 2 + 8 * scale, rowH);
@@ -325,30 +319,14 @@ export function exportSalaryImage(params: {
   }, "image/png");
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.arcTo(x + w, y, x + w, y + r, r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-  ctx.lineTo(x + r, y + h);
-  ctx.arcTo(x, y + h, x, y + h - r, r);
-  ctx.lineTo(x, y + r);
-  ctx.arcTo(x, y, x + r, y, r);
-  ctx.closePath();
-}
-
 /** 导出按钮 */
 export function ExportBtn({ onClick }: { onClick: () => void }) {
   return (
-    <div className="flex justify-center">
-      <button
-        onClick={onClick}
-        className="px-6 py-2.5 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition-colors"
-      >
-        保存为图片
-      </button>
-    </div>
+    <button
+      onClick={onClick}
+      className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+    >
+      导出
+    </button>
   );
 }
