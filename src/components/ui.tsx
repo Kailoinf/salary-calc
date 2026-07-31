@@ -14,7 +14,7 @@ export function Card({
   children: ReactNode;
 }) {
   return (
-    <section className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm space-y-3">
+    <section className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm dark:shadow-none space-y-3">
       {title && <h2 className="font-semibold text-slate-900 dark:text-slate-100">{title}</h2>}
       {children}
     </section>
