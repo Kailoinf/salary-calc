@@ -219,7 +219,7 @@ export function MultiCalc({
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
-                  <tr className="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                  <tr className="text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 whitespace-nowrap">
                     <th className="py-1.5 text-left font-medium">月份</th>
                     <th className="py-1.5 text-center font-medium">工作日</th>
                     <th className="py-1.5 text-center font-medium">A班</th>
@@ -234,7 +234,7 @@ export function MultiCalc({
                 </thead>
                 <tbody>
                   {pageItems.map((r) => (
-                    <tr key={`${r.year}-${r.month}`} className="border-b border-slate-100 dark:border-slate-800">
+                    <tr key={`${r.year}-${r.month}`} className="border-b border-slate-100 dark:border-slate-800 whitespace-nowrap">
                       <td className="py-1.5">{r.year}/{String(r.month).padStart(2, "0")}</td>
                       <td className="py-1.5 text-center">{r.totalWorkDays}</td>
                       <td className="py-1.5 text-center">{r.aDayCount}</td>
