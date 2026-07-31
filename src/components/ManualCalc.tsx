@@ -8,7 +8,7 @@ import {
   SOCIAL_INSURANCE,
 } from "../utils/salary";
 import { num, salaryConfig } from "../utils/format";
-import { Card, DeductionToggles, INPUT, MoneyTable, NetPay, SalaryFields } from "./ui";
+import { Card, DeductionToggles, INPUT, MoneyTable, NetPay } from "./ui";
 
 export function ManualCalc({
   settings,
@@ -107,7 +107,6 @@ export function ManualCalc({
       </Card>
 
       <Card title="💰 基础薪资">
-        <SalaryFields settings={settings} onSettings={onSettings} />
         <DeductionToggles
           noSocial={noSocial}
           noTax={noTax}

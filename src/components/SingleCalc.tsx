@@ -10,7 +10,6 @@ import {
   INPUT,
   MoneyTable,
   NetPay,
-  SalaryFields,
 } from "./ui";
 
 const toggle = (arr: number[], v: number) =>
@@ -186,7 +185,6 @@ export function SingleCalc({
       </Card>
 
       <Card title="💰 基础薪资">
-        <SalaryFields settings={settings} onSettings={onSettings} />
         <DeductionToggles noSocial={noSocial} noTax={noTax} onSocial={setNoSocial} onTax={setNoTax} />
       </Card>
 

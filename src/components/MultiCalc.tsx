@@ -3,7 +3,7 @@ import type { ShiftType } from "../types";
 import type { UserSettings } from "../utils/settings";
 import { calcMultiMonth } from "../utils/salary";
 import { copyText, fmt, salaryConfig, WEEKDAY_NAMES } from "../utils/format";
-import { Card, DeductionToggles, INPUT, SalaryFields } from "./ui";
+import { Card, DeductionToggles, INPUT } from "./ui";
 
 interface YearMonth {
   year: number;
@@ -123,7 +123,6 @@ export function MultiCalc({
       </Card>
 
       <Card title="💰 基础薪资">
-        <SalaryFields settings={settings} onSettings={onSettings} />
         <DeductionToggles noSocial={noSocial} noTax={noTax} onSocial={setNoSocial} onTax={setNoTax} />
       </Card>
 
