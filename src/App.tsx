@@ -58,9 +58,14 @@ export default function App() {
           />
         )}
 
-        <footer className="text-center text-xs text-slate-300 pt-4 space-x-3">
-          <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer" className="hover:text-slate-400">鄂ICP备2024069158号</a>
-          <a href="https://beian.mps.gov.cn" target="_blank" rel="noreferrer" className="hover:text-slate-400">鄂公网安备42050002420933号</a>
+        <footer className="text-center text-xs text-slate-300 pt-4 space-y-1">
+          <div>
+            <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer" className="hover:text-slate-400">鄂ICP备2024069158号</a>
+          </div>
+          <div className="inline-flex items-center gap-1">
+            <img src="https://start.gxj62.cn/police.webp" alt="公安备案" className="w-3.5 h-4 inline" />
+            <a href="https://beian.mps.gov.cn" target="_blank" rel="noreferrer" className="hover:text-slate-400">鄂公网安备42050002420933号</a>
+          </div>
         </footer>
       </div>
     </div>

@@ -61,9 +61,14 @@ export function Settings({
       </Card>
 
       <Card title="📝 制作信息">
-        <p className="text-sm text-slate-500">
-          由 Gakusyun · Hermes · GLM 5.2 · DeepSeek V4 Pro 制作
-        </p>
+        <div className="text-center space-y-2">
+          <p className="text-sm text-slate-500 font-medium">Made by Gakusyun</p>
+          <div className="flex justify-center gap-2 flex-wrap">
+            <span className="text-xs bg-sky-50 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100">Hermes</span>
+            <span className="text-xs bg-sky-50 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100">DeepSeek V4 Pro</span>
+            <span className="text-xs bg-sky-50 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100">GLM 5.2</span>
+          </div>
+        </div>
       </Card>
     </div>
   );
