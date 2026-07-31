@@ -23,7 +23,7 @@ export function Tabs({
           className={
             "px-4 py-2 rounded-lg text-sm font-medium transition-colors " +
             (active === t.id
-              ? "bg-sky-600 text-white shadow-sm"
+              ? "bg-sky-600 border border-sky-600 text-white shadow-sm"
               : "bg-white dark:bg-black text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800")
           }
         >
