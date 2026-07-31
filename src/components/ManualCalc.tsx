@@ -1,7 +1,9 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { UserSettings } from "../utils/settings";
+import type { ShiftType } from "../types";
 import {
   calcBaseHourlyRate,
+  calcMonthlySalary,
   calcTax,
   SOCIAL_INSURANCE,
 } from "../utils/salary";
@@ -22,6 +24,30 @@ export function ManualCalc({
   const [noSocial, setNoSocial] = useState(false);
   const [noTax, setNoTax] = useState(false);
   const touched = useRef(new Set<string>());
+
+  // 首次打开根据当月排班自动填充工时
+  useEffect(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth() + 1;
+    const prevShift: ShiftType = "night";
+    const result = calcMonthlySalary({
+      year: y, month: m,
+      restDayWeekday: 3,
+      shiftType: "day",
+      prevShiftType: prevShift,
+      bDay8hDates: [],
+      noOvertimeDates: [],
+      noOvertimeWeekdays: [],
+      config: salaryConfig(settings),
+      noSocial: false,
+      noTax: false,
+    });
+    setOvertime(String(result.aDayCount * 3));
+    setBhours(String(result.bDayCount * 11));
+    setFhours(String(result.fDayCount * 11));
+    setNights(String(result.nightShiftDays));
+  }, []); // ponytail: 仅首次挂载触发，用户可手动修改
 
   const r = useMemo(() => {
     const config = salaryConfig(settings);
