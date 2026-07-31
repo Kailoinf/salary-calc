@@ -8,7 +8,7 @@ import {
   SOCIAL_INSURANCE,
 } from "../utils/salary";
 import { num, salaryConfig } from "../utils/format";
-import { Card, DeductionToggles, INPUT, MoneyTable, NetPay } from "./ui";
+import { Card, INPUT, MoneyTable, NetPay } from "./ui";
 
 export function ManualCalc({
   settings,
@@ -21,8 +21,6 @@ export function ManualCalc({
   const [bhours, setBhours] = useState("44");
   const [fhours, setFhours] = useState("0");
   const [nights, setNights] = useState("0");
-  const [noSocial, setNoSocial] = useState(false);
-  const [noTax, setNoTax] = useState(false);
   const touched = useRef(new Set<string>());
 
   // 首次打开根据当月排班自动填充工时，夜班固定0天
@@ -33,15 +31,15 @@ export function ManualCalc({
     const prevShift: ShiftType = "night";
     const result = calcMonthlySalary({
       year: y, month: m,
-      restDayWeekday: 3,
+      restDayWeekday: settings.restDayWeekday,
       shiftType: "day",
       prevShiftType: prevShift,
       bDay8hDates: [],
       noOvertimeDates: [],
       noOvertimeWeekdays: [],
       config: salaryConfig(settings),
-      noSocial: false,
-      noTax: false,
+      noSocial: settings.noSocial,
+      noTax: settings.noTax,
     });
     setOvertime(String(result.aDayCount * 3));
     setBhours(String(result.bDayCount * 11));
@@ -60,17 +58,18 @@ export function ManualCalc({
       config.baseSalary +
       config.positionPay +
       config.fullAttendanceBonus +
-      config.performancePay;
+      config.performancePay +
+      config.adjustment;
     const otPay = Math.round(ot * 1.5 * hr);
     const bPay = Math.round(bh * 2 * hr);
     const fPay = Math.round(fh * 3 * hr);
     const nightPay = Math.round(nd * 2000);
     const grossPay = Math.round(fixedTotal + otPay + bPay + fPay + nightPay);
-    const social = noSocial ? 0 : SOCIAL_INSURANCE;
-    const tax = noTax ? 0 : calcTax(grossPay, social);
+    const social = settings.noSocial ? 0 : SOCIAL_INSURANCE;
+    const tax = settings.noTax ? 0 : calcTax(grossPay, social);
     const netPay = Math.round(grossPay - social - tax);
     return { ot, bh, fh, nd, fixedTotal, otPay, bPay, fPay, nightPay, grossPay, social, tax, netPay };
-  }, [settings, overtime, bhours, fhours, nights, noSocial, noTax]);
+  }, [settings, overtime, bhours, fhours, nights]);
 
   const hourFields = [
     { label: "加班小时(A班×1.5)", step: "0.5", value: overtime, set: setOvertime },
@@ -104,15 +103,6 @@ export function ManualCalc({
             );
           })}
         </div>
-      </Card>
-
-      <Card title="💰 基础薪资">
-        <DeductionToggles
-          noSocial={noSocial}
-          noTax={noTax}
-          onSocial={setNoSocial}
-          onTax={setNoTax}
-        />
       </Card>
 
       <Card title="📊 计算结果">

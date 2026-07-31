@@ -65,12 +65,13 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
   // b. 基础时薪（分/小时，含小数）
   const baseHourlyRate = calcBaseHourlyRate(config.baseSalary);
 
-  // c. 固定薪资合计（各项均为分，求和即分）
+  // c. 固定薪资合计（各项均为分，求和即分；含全局奖励/惩罚 adjustment）
   const fixedTotal =
     config.baseSalary +
     config.positionPay +
     config.fullAttendanceBonus +
-    config.performancePay;
+    config.performancePay +
+    config.adjustment;
 
   // d. A 班加班费：加班 3h × 1.5 倍（不加班的 A 班日不计）
   const weekdayOvertime = Math.round(

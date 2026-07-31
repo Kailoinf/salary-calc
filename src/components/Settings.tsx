@@ -39,6 +39,56 @@ export function Settings({
     <div className="space-y-4">
       <Card title="💰 薪资构成">
         <SalaryFields settings={settings} onSettings={onSettings} />
+        <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400 pt-1">
+          奖励/惩罚（正=奖励，负=惩罚）
+          <input
+            type="number"
+            step="10"
+            value={settings.adjustment / 100}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              if (Number.isFinite(v)) onSettings({ ...settings, adjustment: yuanToCents(v) });
+            }}
+            className={INPUT}
+          />
+        </label>
+      </Card>
+
+      <Card title="⚙️ 全局设置">
+        <div className="space-y-3">
+          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
+            C班休息日
+            <select
+              value={settings.restDayWeekday}
+              onChange={(e) => onSettings({ ...settings, restDayWeekday: Number(e.target.value) })}
+              className={INPUT}
+            >
+              {["周日","周一","周二","周三","周四","周五","周六"].map((n, i) => (
+                <option key={i} value={i}>{n}</option>
+              ))}
+            </select>
+          </label>
+          <div className="flex gap-4">
+            <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
+              <input
+                type="checkbox"
+                checked={settings.noSocial}
+                onChange={(e) => onSettings({ ...settings, noSocial: e.target.checked })}
+                className="rounded"
+              />
+              不交社保
+            </label>
+            <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
+              <input
+                type="checkbox"
+                checked={settings.noTax}
+                onChange={(e) => onSettings({ ...settings, noTax: e.target.checked })}
+                className="rounded"
+              />
+              不交个税
+            </label>
+          </div>
+        </div>
       </Card>
 
       <Card title="🏥 社保个税">

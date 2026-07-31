@@ -1,12 +1,16 @@
 // 用户可调参数，持久化到 localStorage
 // ⚠️ 金额字段单位为「分」（1 元 = 100 分）
 
-/** 用户设置：薪资构成 4 + 个税 2 */
+/** 用户设置：薪资构成 4 + 全局 4 + 个税 2 */
 export interface UserSettings {
   baseSalary: number; // 底薪，分，默认 2800 元 = 280000
   positionSalary: number; // 岗位工资，分，默认 200 元 = 20000
   attendanceBonus: number; // 全勤奖，分，默认 150 元 = 15000
   performanceSalary: number; // 绩效工资，分，默认 200 元 = 20000
+  restDayWeekday: number; // C 班（休息日）周几，0=周日~6=周六，默认 3（周三）
+  adjustment: number; // 奖励/惩罚，分，默认 0 元 = 0，可负
+  noSocial: boolean; // 不交社保
+  noTax: boolean; // 不交个税
   taxThreshold: number; // 个税起征点，分，默认 5000 元 = 500000
   taxRate: number; // 个税税率，默认 0.03
 }
@@ -16,6 +20,10 @@ export const DEFAULT_SETTINGS: UserSettings = {
   positionSalary: 20000,
   attendanceBonus: 15000,
   performanceSalary: 20000,
+  restDayWeekday: 3,
+  adjustment: 0,
+  noSocial: false,
+  noTax: false,
   taxThreshold: 500000,
   taxRate: 0.03,
 };
@@ -31,7 +39,11 @@ export function loadSettings(): UserSettings {
     const parsed = JSON.parse(raw) as Partial<Record<keyof UserSettings, unknown>>;
     (Object.keys(s) as (keyof UserSettings)[]).forEach((k) => {
       const v = parsed[k];
-      if (typeof v === "number" && Number.isFinite(v)) s[k] = v;
+      if (k === "noSocial" || k === "noTax") {
+        if (typeof v === "boolean") (s as any)[k] = v;
+      } else if (typeof v === "number" && Number.isFinite(v)) {
+        (s as any)[k] = v;
+      }
     });
   } catch {
     /* 解析失败则用默认值 */

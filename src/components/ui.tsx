@@ -21,7 +21,7 @@ export function Card({
   );
 }
 
-const SALARY_FIELDS: { key: keyof UserSettings; label: string; step: string }[] =
+const SALARY_FIELDS: { key: "baseSalary" | "positionSalary" | "attendanceBonus" | "performanceSalary"; label: string; step: string }[] =
   [
     { key: "baseSalary", label: "基础工资", step: "100" },
     { key: "positionSalary", label: "岗位工资", step: "10" },

@@ -8,6 +8,7 @@ export interface SalaryConfig {
   positionPay: number; // 岗位工资，分，默认 200 元 = 20000
   fullAttendanceBonus: number; // 全勤奖，分，默认 150 元 = 15000
   performancePay: number; // 绩效工资，分，默认 200 元 = 20000
+  adjustment: number; // 奖励/惩罚，分，默认 0 元 = 0，可负
 }
 
 /** 排班类型 */

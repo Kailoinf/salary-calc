@@ -6,7 +6,6 @@ import { getADayDates, getBDayDates } from "../utils/date";
 import { copyText, fmt, num, salaryConfig, WEEKDAY_NAMES } from "../utils/format";
 import {
   Card,
-  DeductionToggles,
   INPUT,
   MoneyTable,
   NetPay,
@@ -24,13 +23,13 @@ export function SingleCalc({
 }) {
   const [year, setYear] = useState("2026");
   const [month, setMonth] = useState("7");
-  const [restDayWeekday, setRestDayWeekday] = useState(3);
+  const restDayWeekday = settings.restDayWeekday;
   const [shiftType, setShiftType] = useState<ShiftType>("day");
   const [noOtWeekdays, setNoOtWeekdays] = useState<number[]>([]);
   const [noOtDates, setNoOtDates] = useState<number[]>([]); // 标记"不加班"的 A 班日
   const [bDay8h, setBDay8h] = useState<number[]>([]);
-  const [noSocial, setNoSocial] = useState(false);
-  const [noTax, setNoTax] = useState(false);
+  const noSocial = settings.noSocial;
+  const noTax = settings.noTax;
   const [copied, setCopied] = useState(false);
 
   const y = num(year, 2026);
@@ -110,11 +109,7 @@ export function SingleCalc({
           </label>
           <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             C班(休息日)周几
-            <select value={restDayWeekday} onChange={(e) => setRestDayWeekday(Number(e.target.value))} className={INPUT}>
-              {WEEKDAY_NAMES.map((n, i) => (
-                <option key={i} value={i}>{n}</option>
-              ))}
-            </select>
+            <div className={INPUT + " bg-slate-50 dark:bg-slate-900/40 cursor-not-allowed"}>{WEEKDAY_NAMES[restDayWeekday]}</div>
           </label>
           <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             班次
@@ -182,10 +177,6 @@ export function SingleCalc({
             </div>
           )}
         </div>
-      </Card>
-
-      <Card title="💰 基础薪资">
-        <DeductionToggles noSocial={noSocial} noTax={noTax} onSocial={setNoSocial} onTax={setNoTax} />
       </Card>
 
       <Card title="📊 计算结果">

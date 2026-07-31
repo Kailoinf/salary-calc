@@ -3,7 +3,7 @@ import type { ShiftType } from "../types";
 import type { UserSettings } from "../utils/settings";
 import { calcMultiMonth } from "../utils/salary";
 import { copyText, fmt, salaryConfig, WEEKDAY_NAMES } from "../utils/format";
-import { Card, DeductionToggles, INPUT } from "./ui";
+import { Card, INPUT } from "./ui";
 
 interface YearMonth {
   year: number;
@@ -45,14 +45,14 @@ export function MultiCalc({
   const [start, setStart] = useState("2026-01");
   const [end, setEnd] = useState("2026-12");
   const [restdayMode, setRestdayMode] = useState<"uniform" | "individual">("uniform");
-  const [restdayUniform, setRestdayUniform] = useState(3);
+  const restdayUniform = settings.restDayWeekday;
   const [restdayInd, setRestdayInd] = useState<Record<string, number>>({});
   const [shiftMode, setShiftMode] = useState<"flip" | "individual">("flip");
   const [shiftFlipFirst, setShiftFlipFirst] = useState<ShiftType>("day");
   const [shiftInd, setShiftInd] = useState<Record<string, ShiftType>>({});
   const [noOtWeekdays, setNoOtWeekdays] = useState<number[]>([]);
-  const [noSocial, setNoSocial] = useState(false);
-  const [noTax, setNoTax] = useState(false);
+  const noSocial = settings.noSocial;
+  const noTax = settings.noTax;
   const [page, setPage] = useState(0);
   const [copied, setCopied] = useState(false);
 
@@ -64,7 +64,7 @@ export function MultiCalc({
     const restDayWeekday: number | number[] =
       restdayMode === "uniform"
         ? restdayUniform
-        : months.map((mm) => restdayInd[ymKey(mm.year, mm.month)] ?? 3);
+        : months.map((mm) => restdayInd[ymKey(mm.year, mm.month)] ?? restdayUniform);
     const shiftType: ShiftType | ShiftType[] =
       shiftMode === "flip"
         ? shiftFlipFirst
@@ -122,10 +122,6 @@ export function MultiCalc({
         </div>
       </Card>
 
-      <Card title="💰 基础薪资">
-        <DeductionToggles noSocial={noSocial} noTax={noTax} onSocial={setNoSocial} onTax={setNoTax} />
-      </Card>
-
       <Card title="🔄 排班配置">
         <div className="space-y-2">
           <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
@@ -140,9 +136,8 @@ export function MultiCalc({
         {restdayMode === "uniform" ? (
           <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400 sm:w-48">
             C班(休息日)周几
-            <select value={restdayUniform} onChange={(e) => setRestdayUniform(Number(e.target.value))} className={INPUT}>
-              {WEEKDAY_NAMES.map((n, i) => (<option key={i} value={i}>{n}</option>))}
-            </select>
+            <div className={INPUT + " bg-slate-50 dark:bg-slate-900/40 cursor-not-allowed"}>{WEEKDAY_NAMES[restdayUniform]}</div>
+            <span className="text-xs text-slate-400 dark:text-slate-500">（在「设置」中统一调整）</span>
           </label>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -150,7 +145,7 @@ export function MultiCalc({
               <label key={ymKey(mm.year, mm.month)} className="flex flex-col gap-1 text-xs text-slate-600 dark:text-slate-400">
                 {mm.year}年{mm.month}月
                 <select
-                  value={restdayInd[ymKey(mm.year, mm.month)] ?? 3}
+                  value={restdayInd[ymKey(mm.year, mm.month)] ?? restdayUniform}
                   onChange={(e) => setRestdayInd((a) => ({ ...a, [ymKey(mm.year, mm.month)]: Number(e.target.value) }))}
                   className={INPUT}
                 >

@@ -31,6 +31,7 @@ export function salaryConfig(s: UserSettings): SalaryConfig {
     positionPay: s.positionSalary,
     fullAttendanceBonus: s.attendanceBonus,
     performancePay: s.performanceSalary,
+    adjustment: s.adjustment,
   };
 }
 
