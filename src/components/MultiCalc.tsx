@@ -113,11 +113,11 @@ export function MultiCalc({
         <div className="grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             起始年月
-            <input type="month" value={start} onChange={(e) => setStart(e.target.value)} className={INPUT} />
+            <input type="month" value={start} onChange={(e) => setStart(e.target.value)} className={INPUT + " w-auto"} />
           </label>
           <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             结束年月
-            <input type="month" value={end} onChange={(e) => setEnd(e.target.value)} className={INPUT} />
+            <input type="month" value={end} onChange={(e) => setEnd(e.target.value)} className={INPUT + " w-auto"} />
           </label>
         </div>
       </Card>
