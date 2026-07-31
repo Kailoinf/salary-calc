@@ -265,7 +265,7 @@ export function MultiCalc({
                     onClick={() => setPage(i)}
                     className={
                       "px-3 py-1 rounded-md text-xs " +
-                      (i === cur ? "bg-sky-600 text-white" : "bg-slate-100 dark:bg-black text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800")
+                      (i === cur ? "bg-sky-600 text-white" : "border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-black text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800")
                     }
                   >
                     第 {i + 1} 页
