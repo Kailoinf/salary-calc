@@ -110,10 +110,6 @@ export function SingleCalc({
             <input type="number" min={1} max={12} value={month} onChange={(e) => setMonth(e.target.value)} className={INPUT} />
           </label>
           <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
-            C班(休息日)周几
-            <div className={INPUT + " bg-slate-50 dark:bg-slate-900/40 cursor-not-allowed"}>{WEEKDAY_NAMES[restDayWeekday]}</div>
-          </label>
-          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             班次
             <select value={shiftType} onChange={(e) => setShiftType(e.target.value as ShiftType)} className={INPUT}>
               <option value="day">白班</option>
@@ -121,6 +117,17 @@ export function SingleCalc({
             </select>
           </label>
         </div>
+        <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400 pt-3">
+          奖励与惩罚
+          <input
+            type="number"
+            step="10"
+            value={adjustment}
+            onChange={(e) => setAdjustment(e.target.value)}
+            onBlur={(e) => { if ((e.target as any).value === "") setAdjustment("0"); }}
+            className={INPUT}
+          />
+        </label>
       </Card>
 
       <Card title="不加班 / B班8h">
@@ -180,20 +187,6 @@ export function SingleCalc({
           )}
         </div>
       </Card>
-
-      <div className="grid grid-cols-1 gap-3">
-        <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
-          奖励/惩罚（正=奖励，负=惩罚）
-          <input
-            type="number"
-            step="10"
-            value={adjustment}
-            onChange={(e) => setAdjustment(e.target.value)}
-            onBlur={(e) => { if ((e.target as any).value === "") setAdjustment("0"); }}
-            className={INPUT}
-          />
-        </label>
-      </div>
 
       <Card title="计算结果">
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
