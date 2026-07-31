@@ -109,7 +109,7 @@ export function MultiCalc({
 
   return (
     <div className="space-y-4">
-      <Card title="📅 日期区间">
+      <Card title="日期区间">
         <div className="grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             起始年月
@@ -122,7 +122,7 @@ export function MultiCalc({
         </div>
       </Card>
 
-      <Card title="🔄 排班配置">
+      <Card title="排班配置">
         <div className="space-y-2">
           <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
             <input type="radio" checked={restdayMode === "uniform"} onChange={() => setRestdayMode("uniform")} />
@@ -211,7 +211,7 @@ export function MultiCalc({
         </div>
       </Card>
 
-      <Card title="📊 多月汇总">
+      <Card title="多月汇总">
         {summary.results.length === 0 ? (
           <p className="text-sm text-slate-400 dark:text-slate-500">请选择有效的日期区间（结束月份需不早于起始月份）。</p>
         ) : (
@@ -289,7 +289,7 @@ export function MultiCalc({
               onClick={copy}
               className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition-colors"
             >
-              {copied ? "✅ 已复制！" : "📋 复制汇总文本"}
+              {copied ? "已复制！" : "复制汇总文本"}
             </button>
           </>
         )}

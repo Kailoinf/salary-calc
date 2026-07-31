@@ -99,7 +99,7 @@ export function SingleCalc({
 
   return (
     <div className="space-y-4">
-      <Card title="📅 日期与排班">
+      <Card title="日期与排班">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
             年份
@@ -123,7 +123,7 @@ export function SingleCalc({
         </div>
       </Card>
 
-      <Card title="🚫 不加班 / B班8h">
+      <Card title="不加班 / B班8h">
         <div>
           <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">不加班 — 按周几</h3>
           <div className="flex flex-wrap gap-3">
@@ -195,7 +195,7 @@ export function SingleCalc({
         </label>
       </div>
 
-      <Card title="📊 计算结果">
+      <Card title="计算结果">
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {stats.map((s) => (
             <div key={s.label} className="bg-slate-50 dark:bg-black rounded-lg px-2 py-2 text-center">
@@ -221,7 +221,7 @@ export function SingleCalc({
           onClick={copy}
           className="px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-medium hover:bg-sky-700 transition-colors"
         >
-          {copied ? "✅ 已复制！" : "📋 复制薪资明细"}
+          {copied ? "已复制！" : "复制薪资明细"}
         </button>
       </Card>
     </div>

@@ -1,10 +1,10 @@
 export type TabId = "manual" | "single" | "multi" | "settings";
 
 const TABS: { id: TabId; label: string }[] = [
-  { id: "manual", label: "✏️ 手动算薪" },
-  { id: "single", label: "📅 单月计算" },
-  { id: "multi", label: "📆 多月批量" },
-  { id: "settings", label: "⚙️ 设置" },
+  { id: "manual", label: "手动算薪" },
+  { id: "single", label: "单月计算" },
+  { id: "multi", label: "多月批量" },
+  { id: "settings", label: "设置" },
 ];
 
 export function Tabs({

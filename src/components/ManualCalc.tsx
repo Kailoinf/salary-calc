@@ -81,7 +81,7 @@ export function ManualCalc({
 
   return (
     <div className="space-y-4">
-      <Card title="⏱️ 工时与奖励">
+      <Card title="工时与奖励">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {hourFields.map((f, i) => {
             const key = String(i);
@@ -120,7 +120,7 @@ export function ManualCalc({
         </label>
       </Card>
 
-      <Card title="📊 计算结果">
+      <Card title="计算结果">
         <MoneyTable
           rows={[
             { label: "固定薪资合计", amount: r.fixedTotal },

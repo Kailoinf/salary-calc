@@ -37,7 +37,7 @@ export function Settings({
 
   return (
     <div className="space-y-4">
-      <Card title="⚙️ 全局设置">
+      <Card title="全局设置">
         <SalaryFields settings={settings} onSettings={onSettings} />
         <div className="space-y-3 pt-2">
           <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
@@ -75,7 +75,7 @@ export function Settings({
         </div>
       </Card>
 
-      <Card title="🏥 社保个税">
+      <Card title="社保个税">
         <div className="grid grid-cols-2 gap-3">
           {taxFields.map((f) => {
             const draft = drafts[f.key];
@@ -109,11 +109,11 @@ export function Settings({
           onClick={onReset}
           className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-black text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
         >
-          ↩️ 恢复默认
+          恢复默认
         </button>
       </Card>
 
-      <Card title="📝 制作信息">
+      <Card title="制作信息">
         <div className="text-center space-y-2">
           <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Made by Gakusyun</p>
           <div className="flex justify-center gap-2 flex-wrap">
