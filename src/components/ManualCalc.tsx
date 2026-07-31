@@ -21,6 +21,7 @@ export function ManualCalc({
   const [bhours, setBhours] = useState("44");
   const [fhours, setFhours] = useState("0");
   const [nights, setNights] = useState("0");
+  const [adjustment, setAdjustment] = useState("0");
   const touched = useRef(new Set<string>());
 
   // 首次打开根据当月排班自动填充工时，夜班固定0天
@@ -59,7 +60,7 @@ export function ManualCalc({
       config.positionPay +
       config.fullAttendanceBonus +
       config.performancePay +
-      config.adjustment;
+      num(adjustment, 0);
     const otPay = Math.round(ot * 1.5 * hr);
     const bPay = Math.round(bh * 2 * hr);
     const fPay = Math.round(fh * 3 * hr);
@@ -69,7 +70,7 @@ export function ManualCalc({
     const tax = settings.noTax ? 0 : calcTax(grossPay, social);
     const netPay = Math.round(grossPay - social - tax);
     return { ot, bh, fh, nd, fixedTotal, otPay, bPay, fPay, nightPay, grossPay, social, tax, netPay };
-  }, [settings, overtime, bhours, fhours, nights]);
+  }, [settings, overtime, bhours, fhours, nights, adjustment]);
 
   const hourFields = [
     { label: "加班小时(A班×1.5)", step: "0.5", value: overtime, set: setOvertime },
@@ -104,6 +105,23 @@ export function ManualCalc({
           })}
         </div>
       </Card>
+
+      <div className="grid grid-cols-1 gap-3">
+        <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
+          奖励/惩罚（正=奖励，负=惩罚，单位：元）
+          <input
+            type="number"
+            step="10"
+            value={adjustment}
+            onChange={(e) => { setAdjustment(e.target.value); touched.current.add("adj"); }}
+            onBlur={(e) => {
+              if (touched.current.has("adj") && (e.target as any).value === "") setAdjustment("0");
+            }}
+            onFocus={() => touched.current.add("adj")}
+            className={INPUT}
+          />
+        </label>
+      </div>
 
       <Card title="📊 计算结果">
         <MoneyTable

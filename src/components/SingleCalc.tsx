@@ -28,6 +28,7 @@ export function SingleCalc({
   const [noOtWeekdays, setNoOtWeekdays] = useState<number[]>([]);
   const [noOtDates, setNoOtDates] = useState<number[]>([]); // 标记"不加班"的 A 班日
   const [bDay8h, setBDay8h] = useState<number[]>([]);
+  const [adjustment, setAdjustment] = useState("0");
   const noSocial = settings.noSocial;
   const noTax = settings.noTax;
   const [copied, setCopied] = useState(false);
@@ -45,6 +46,7 @@ export function SingleCalc({
 
   const r = useMemo(() => {
     const prevShiftType: ShiftType = shiftType === "night" ? "day" : "night";
+    const adj = num(adjustment, 0);
     return calcMonthlySalary({
       year: y,
       month: m,
@@ -54,11 +56,11 @@ export function SingleCalc({
       bDay8hDates: bDay8h,
       noOvertimeDates: noOtDates,
       noOvertimeWeekdays: noOtWeekdays,
-      config: salaryConfig(settings),
+      config: { ...salaryConfig(settings), adjustment: adj },
       noSocial,
       noTax,
     });
-  }, [y, m, restDayWeekday, shiftType, bDay8h, noOtDates, noOtWeekdays, settings, noSocial, noTax]);
+  }, [y, m, restDayWeekday, shiftType, bDay8h, noOtDates, noOtWeekdays, settings, adjustment, noSocial, noTax]);
 
   const stats: { label: string; val: string | number }[] = [
     { label: "工作日", val: r.totalWorkDays },
@@ -178,6 +180,20 @@ export function SingleCalc({
           )}
         </div>
       </Card>
+
+      <div className="grid grid-cols-1 gap-3">
+        <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
+          奖励/惩罚（正=奖励，负=惩罚）
+          <input
+            type="number"
+            step="10"
+            value={adjustment}
+            onChange={(e) => setAdjustment(e.target.value)}
+            onBlur={(e) => { if ((e.target as any).value === "") setAdjustment("0"); }}
+            className={INPUT}
+          />
+        </label>
+      </div>
 
       <Card title="📊 计算结果">
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">

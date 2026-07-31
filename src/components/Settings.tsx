@@ -39,19 +39,6 @@ export function Settings({
     <div className="space-y-4">
       <Card title="💰 薪资构成">
         <SalaryFields settings={settings} onSettings={onSettings} />
-        <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400 pt-1">
-          奖励/惩罚（正=奖励，负=惩罚）
-          <input
-            type="number"
-            step="10"
-            value={settings.adjustment / 100}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              if (Number.isFinite(v)) onSettings({ ...settings, adjustment: yuanToCents(v) });
-            }}
-            className={INPUT}
-          />
-        </label>
       </Card>
 
       <Card title="⚙️ 全局设置">
