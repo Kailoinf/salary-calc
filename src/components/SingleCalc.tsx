@@ -193,7 +193,7 @@ export function SingleCalc({
       <Card title="📊 计算结果">
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {stats.map((s) => (
-            <div key={s.label} className="bg-slate-50 dark:bg-slate-800 rounded-lg px-2 py-2 text-center">
+            <div key={s.label} className="bg-slate-50 dark:bg-black rounded-lg px-2 py-2 text-center">
               <div className="text-xs text-slate-500 dark:text-slate-400">{s.label}</div>
               <div className="font-semibold text-slate-800 dark:text-slate-200 tabular-nums">{s.val}</div>
             </div>

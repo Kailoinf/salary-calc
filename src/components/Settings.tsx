@@ -51,7 +51,7 @@ export function Settings({
         </div>
         <button
           onClick={onReset}
-          className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+          className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-black text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
         >
           ↩️ 恢复默认
         </button>
