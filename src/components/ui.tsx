@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import type { UserSettings } from "../utils/settings";
 import { fmt, yuanToCents } from "../utils/format";
 
@@ -29,7 +29,7 @@ const SALARY_FIELDS: { key: keyof UserSettings; label: string; step: string }[] 
     { key: "performanceSalary", label: "绩效工资", step: "10" },
   ];
 
-/** 4 项薪资构成输入，受控于共享 settings（分↔元），四处同步 */
+/** 4 项薪资构成输入，焦点时本地编辑不干扰，失焦提交到 settings */
 export function SalaryFields({
   settings,
   onSettings,
@@ -37,29 +37,39 @@ export function SalaryFields({
   settings: UserSettings;
   onSettings: (s: UserSettings) => void;
 }) {
+  const [drafts, setDrafts] = useState<Record<string, string | null>>({});
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {SALARY_FIELDS.map((f) => (
-        <label
-          key={f.key}
-          className="flex flex-col gap-1 text-sm text-slate-600"
-        >
-          {f.label}
-          <input
-            type="number"
-            min={0}
-            step={f.step}
-            value={settings[f.key] / 100}
-            onChange={(e) => {
-              const raw = e.target.value;
-              const v = raw === "" ? 0 : Number(raw);
-              if (Number.isFinite(v))
-                onSettings({ ...settings, [f.key]: yuanToCents(v) });
-            }}
-            className={INPUT}
-          />
-        </label>
-      ))}
+      {SALARY_FIELDS.map((f) => {
+        const draft = drafts[f.key];
+        const display = draft !== null && draft !== undefined ? draft : String(settings[f.key] / 100);
+        return (
+          <label
+            key={f.key}
+            className="flex flex-col gap-1 text-sm text-slate-600"
+          >
+            {f.label}
+            <input
+              type="number"
+              min={0}
+              step={f.step}
+              value={display}
+              onFocus={() => setDrafts((prev) => ({ ...prev, [f.key]: String(settings[f.key] / 100) }))}
+              onChange={(e) => setDrafts((prev) => ({ ...prev, [f.key]: e.target.value }))}
+              onBlur={() => {
+                const raw = drafts[f.key];
+                if (raw === null || raw === undefined) return;
+                const v = Number(raw);
+                if (Number.isFinite(v) && v >= 0)
+                  onSettings({ ...settings, [f.key]: yuanToCents(v) });
+                setDrafts((prev) => ({ ...prev, [f.key]: null }));
+              }}
+              className={INPUT}
+            />
+          </label>
+        );
+      })}
     </div>
   );
 }
