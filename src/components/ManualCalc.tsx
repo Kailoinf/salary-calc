@@ -60,7 +60,7 @@ export function ManualCalc({
       config.positionPay +
       config.fullAttendanceBonus +
       config.performancePay +
-      num(adjustment, 0);
+      num(adjustment, 0) * 100;
     const otPay = Math.round(ot * 1.5 * hr);
     const bPay = Math.round(bh * 2 * hr);
     const fPay = Math.round(fh * 3 * hr);

@@ -46,7 +46,7 @@ export function SingleCalc({
 
   const r = useMemo(() => {
     const prevShiftType: ShiftType = shiftType === "night" ? "day" : "night";
-    const adj = num(adjustment, 0);
+    const adj = num(adjustment, 0) * 100;
     return calcMonthlySalary({
       year: y,
       month: m,
