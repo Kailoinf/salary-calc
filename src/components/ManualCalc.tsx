@@ -28,8 +28,16 @@ export function ManualCalc({
   // 首次打开根据当月排班自动填充工时，夜班固定0天
   useEffect(() => {
     const now = new Date();
-    const y = now.getFullYear();
-    const m = now.getMonth() + 1;
+    let y = now.getFullYear();
+    let m = now.getMonth() + 1;
+    // 发放日规则：15 号及之前查上月（次月15号发上月工资），16 号起当月
+    if (now.getDate() <= 15) {
+      m -= 1;
+      if (m < 1) {
+        m = 12;
+        y -= 1;
+      }
+    }
     const prevShift: ShiftType = "night";
     const result = calcMonthlySalary({
       year: y, month: m,
