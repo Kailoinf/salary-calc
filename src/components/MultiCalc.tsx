@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ShiftType } from "../types";
 import type { UserSettings } from "../utils/settings";
 import { calcMultiMonth } from "../utils/salary";
 import { fmt, salaryConfig, WEEKDAY_NAMES } from "../utils/format";
-import { Card, ExportBtn, INPUT, exportSalaryImage } from "./ui";
+import { Card, ExportBtn, Field, INPUT, WeekdayToggles, exportSalaryImage } from "./ui";
 
 interface YearMonth {
   year: number;
@@ -58,6 +58,8 @@ export function MultiCalc({
   const s = parseYM(start, 2026, 1);
   const e = parseYM(end, 2026, 12);
   const months = useMemo(() => enumerateMonths(s, e), [s.year, s.month, e.year, e.month]);
+
+  useEffect(() => { setPage(0); }, [s.year, s.month, e.year, e.month]);
 
   const summary = useMemo(() => {
     const restDayWeekday: number | number[] =
@@ -116,14 +118,12 @@ export function MultiCalc({
     <div className="space-y-4">
       <Card title="日期区间">
         <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
-            起始年月
+          <Field label="起始年月">
             <input type="month" value={start} onChange={(e) => setStart(e.target.value)} className={INPUT + " w-auto"} />
-          </label>
-          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
-            结束年月
+          </Field>
+          <Field label="结束年月">
             <input type="month" value={end} onChange={(e) => setEnd(e.target.value)} className={INPUT + " w-auto"} />
-          </label>
+          </Field>
         </div>
       </Card>
 
@@ -139,11 +139,10 @@ export function MultiCalc({
           </label>
         </div>
         {restdayMode === "uniform" ? (
-          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400 sm:w-48">
-            C班(休息日)周几
+          <Field label="C班(休息日)周几" className="sm:w-48">
             <div className={INPUT + " bg-slate-50 dark:bg-slate-900/40 cursor-not-allowed"}>{WEEKDAY_NAMES[restdayUniform]}</div>
             <span className="text-xs text-slate-400 dark:text-slate-500">（在「设置」中统一调整）</span>
-          </label>
+          </Field>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {months.map((mm) => (
@@ -172,14 +171,13 @@ export function MultiCalc({
           </label>
         </div>
         {shiftMode === "flip" ? (
-          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400 sm:w-48">
-            起始班次
+          <Field label="起始班次" className="sm:w-48">
             <select value={shiftFlipFirst} onChange={(e) => setShiftFlipFirst(e.target.value as ShiftType)} className={INPUT}>
               <option value="day">白班</option>
               <option value="night">夜班</option>
             </select>
             <span className="text-xs text-slate-400 dark:text-slate-500">（之后每月自动翻转）</span>
-          </label>
+          </Field>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {months.map((mm) => (
@@ -200,19 +198,7 @@ export function MultiCalc({
 
         <div>
           <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">不加班周几</h3>
-          <div className="flex flex-wrap gap-3">
-            {WEEKDAY_NAMES.map((n, i) => (
-              <label key={i} className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
-                <input
-                  type="checkbox"
-                  checked={noOtWeekdays.includes(i)}
-                  onChange={() => setNoOtWeekdays((a) => (a.includes(i) ? a.filter((x) => x !== i) : [...a, i]))}
-                  className="rounded"
-                />
-                {n}
-              </label>
-            ))}
-          </div>
+          <WeekdayToggles selected={noOtWeekdays} onChange={setNoOtWeekdays} />
         </div>
       </Card>
 

@@ -40,7 +40,6 @@ export interface MonthlyResult {
   fDayCount: number; // F 班（法定节假日）天数
   restDayWeekday: number; // C 班（休息日）周几
   noOvertimeCount: number; // A 班日中"不加班"的天数
-  holidayDays: number; // 法定节假日出勤天数（= fDayCount）
   nightShiftDays: number; // 夜班出勤天数
   // 收入明细（均为分）
   fixedTotal: number; // 固定薪资合计

@@ -1,4 +1,4 @@
-// 跨组件复用的小工具：金额格式化、元↔分换算、薪资设置映射、复制、周几名称。
+// 跨组件复用的小工具：金额格式化、元↔分换算、薪资设置映射、周几名称。
 import type { SalaryConfig } from "../types";
 import type { UserSettings } from "./settings";
 
@@ -39,33 +39,4 @@ export function salaryConfig(s: UserSettings): SalaryConfig {
 export function num(s: string, fallback: number): number {
   const n = Number(s);
   return Number.isFinite(n) ? n : fallback;
-}
-
-/** execCommand 兜底（非 HTTPS 环境下 clipboard API 不可用时） */
-function fallbackCopy(text: string): void {
-  const ta = document.createElement("textarea");
-  ta.value = text;
-  ta.style.position = "fixed";
-  ta.style.opacity = "0";
-  document.body.appendChild(ta);
-  ta.select();
-  try {
-    document.execCommand("copy");
-  } catch {
-    /* 忽略 */
-  }
-  document.body.removeChild(ta);
-}
-
-/** 复制文本到剪贴板，clipboard API 不可用时回退 execCommand */
-export async function copyText(text: string): Promise<void> {
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-    } else {
-      fallbackCopy(text);
-    }
-  } catch {
-    fallbackCopy(text);
-  }
 }

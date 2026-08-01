@@ -5,16 +5,12 @@ import type {
   MultiMonthSummary,
   ShiftType,
 } from "../types";
-import { getWorkDaysInMonth } from "./date";
+import dayjs from "dayjs";
+import { getWorkDaysInMonth, isHoliday } from "./date";
 import { DEFAULT_SETTINGS, type UserSettings } from "./settings";
 
-/** 当前生效的设置（社保 + 个税），由 main.ts 在启动/修改时写入 */
-let currentSettings: UserSettings = { ...DEFAULT_SETTINGS };
-export function getCurrentSettings(): UserSettings {
-  return currentSettings;
-}
+/** 当前生效的个税参数（社保 + 个税），由 App 在启动/修改设置时写入 */
 export function setCurrentSettings(s: UserSettings): void {
-  currentSettings = { ...s };
   TAX_THRESHOLD = s.taxThreshold;
   TAX_RATE = s.taxRate;
 }
@@ -82,7 +78,7 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
   // ponytail: 只计真正是B班日的8h标记，防御性过滤
   let bDay8hCount = 0;
   for (const d of bDay8hDates) {
-    if ((new Date(year, month - 1, d).getDay() + 1) % 7 === restDayWeekday) bDay8hCount++;
+    if ((new Date(year, month - 1, d).getDay() + 1) % 7 === restDayWeekday && !isHoliday(dayjs(new Date(year, month - 1, d)))) bDay8hCount++;
   }
   const tuesdayDoublePay = Math.round(
     (stats.bDayCount - bDay8hCount) * 11 * 2 * baseHourlyRate +
@@ -116,7 +112,6 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     fDayCount: stats.fDayCount,
     restDayWeekday,
     noOvertimeCount: stats.noOvertimeCount,
-    holidayDays: stats.holidayDays.length,
     nightShiftDays: stats.nightShiftDays,
     fixedTotal,
     weekdayOvertime,
@@ -167,11 +162,11 @@ export function calcMultiMonth(
 
   while (y < endYear || (y === endYear && m <= endMonth)) {
     const rwd = Array.isArray(restDayWeekday)
-      ? restDayWeekday[index]
+      ? (restDayWeekday[index] ?? restDayWeekday[0] ?? 3)
       : restDayWeekday;
 
     const currShift: ShiftType = Array.isArray(shiftType)
-      ? shiftType[index]
+      ? (shiftType[index] ?? "day")
       : autoFlip!;
 
     // 单值时：每次迭代翻转

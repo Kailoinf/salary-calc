@@ -3,13 +3,15 @@ import type { ShiftType } from "../types";
 import type { UserSettings } from "../utils/settings";
 import { calcMonthlySalary } from "../utils/salary";
 import { getADayDates, getBDayDates } from "../utils/date";
-import { fmt, num, salaryConfig, WEEKDAY_NAMES } from "../utils/format";
+import { fmt, num, salaryConfig, WEEKDAY_NAMES, yuanToCents } from "../utils/format";
 import {
   Card,
   ExportBtn,
+  Field,
   INPUT,
   MoneyTable,
   NetPay,
+  WeekdayToggles,
   exportSalaryImage,
 } from "./ui";
 
@@ -47,7 +49,7 @@ export function SingleCalc({
 
   const r = useMemo(() => {
     const prevShiftType: ShiftType = shiftType === "night" ? "day" : "night";
-    const adj = num(adjustment, 0) * 100;
+    const adj = yuanToCents(num(adjustment, 0));
     return calcMonthlySalary({
       year: y,
       month: m,
@@ -95,24 +97,20 @@ export function SingleCalc({
     <div className="space-y-4">
       <Card title="日期与排班">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
-            年份
-            <input type="number" min={2020} max={2030} value={year} onChange={(e) => setYear(e.target.value)} className={INPUT} />
-          </label>
-          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
-            月份
-            <input type="number" min={1} max={12} value={month} onChange={(e) => setMonth(e.target.value)} className={INPUT} />
-          </label>
-          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
-            班次
+          <Field label="年份">
+            <input type="number" min={2020} max={2030} value={year} onChange={(e) => { setYear(e.target.value); setNoOtDates([]); setBDay8h([]); }} className={INPUT} />
+          </Field>
+          <Field label="月份">
+            <input type="number" min={1} max={12} value={month} onChange={(e) => { setMonth(e.target.value); setNoOtDates([]); setBDay8h([]); }} className={INPUT} />
+          </Field>
+          <Field label="班次">
             <select value={shiftType} onChange={(e) => setShiftType(e.target.value as ShiftType)} className={INPUT}>
               <option value="day">白班</option>
               <option value="night">夜班</option>
             </select>
-          </label>
+          </Field>
         </div>
-        <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400 pt-3">
-          奖励与惩罚
+        <Field label="奖励与惩罚" className="pt-3">
           <input
             type="number"
             step="10"
@@ -121,20 +119,13 @@ export function SingleCalc({
             onBlur={(e) => { if ((e.target as any).value === "") setAdjustment("0"); }}
             className={INPUT}
           />
-        </label>
+        </Field>
       </Card>
 
       <Card title="不加班 / B班8h">
         <div>
-          <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">不加班 — 按周几</h3>
-          <div className="flex flex-wrap gap-3">
-            {WEEKDAY_NAMES.map((n, i) => (
-              <label key={i} className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
-                <input type="checkbox" checked={noOtWeekdays.includes(i)} onChange={() => setNoOtWeekdays((a) => toggle(a, i))} className="rounded" />
-                {n}
-              </label>
-            ))}
-          </div>
+          <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">不加班 — 按周几（仅对A班日生效）</h3>
+          <WeekdayToggles selected={noOtWeekdays} onChange={setNoOtWeekdays} />
         </div>
         <div>
           <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">不加班 — 按日期（取消勾选=不加班）</h3>

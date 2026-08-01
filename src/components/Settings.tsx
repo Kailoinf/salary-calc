@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { UserSettings } from "../utils/settings";
-import { yuanToCents } from "../utils/format";
-import { Card, INPUT, SalaryFields } from "./ui";
+import { WEEKDAY_NAMES, yuanToCents } from "../utils/format";
+import { Card, DeductionToggles, Field, INPUT, SalaryFields } from "./ui";
 
 export function Settings({
   settings,
@@ -40,38 +40,23 @@ export function Settings({
       <Card title="全局设置">
         <SalaryFields settings={settings} onSettings={onSettings} />
         <div className="space-y-3 pt-2">
-          <label className="flex flex-col gap-1 text-sm text-slate-600 dark:text-slate-400">
-            C班休息日
+          <Field label="C班休息日">
             <select
               value={settings.restDayWeekday}
               onChange={(e) => onSettings({ ...settings, restDayWeekday: Number(e.target.value) })}
               className={INPUT}
             >
-              {["周日","周一","周二","周三","周四","周五","周六"].map((n, i) => (
+              {WEEKDAY_NAMES.map((n, i) => (
                 <option key={i} value={i}>{n}</option>
               ))}
             </select>
-          </label>
-          <div className="flex gap-4">
-            <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
-              <input
-                type="checkbox"
-                checked={settings.noSocial}
-                onChange={(e) => onSettings({ ...settings, noSocial: e.target.checked })}
-                className="rounded"
-              />
-              不交社保
-            </label>
-            <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
-              <input
-                type="checkbox"
-                checked={settings.noTax}
-                onChange={(e) => onSettings({ ...settings, noTax: e.target.checked })}
-                className="rounded"
-              />
-              不交个税
-            </label>
-          </div>
+          </Field>
+          <DeductionToggles
+            noSocial={settings.noSocial}
+            noTax={settings.noTax}
+            onSocial={(b) => onSettings({ ...settings, noSocial: b })}
+            onTax={(b) => onSettings({ ...settings, noTax: b })}
+          />
         </div>
       </Card>
 
@@ -106,7 +91,7 @@ export function Settings({
           })}
         </div>
         <button
-          onClick={onReset}
+          onClick={() => { onReset(); setDrafts({}); }}
           className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-black text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
         >
           恢复默认

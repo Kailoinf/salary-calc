@@ -2,7 +2,6 @@ import { useCallback, useState } from "react";
 import type { UserSettings } from "./utils/settings";
 import { loadSettings, saveSettings, resetSettings } from "./utils/settings";
 import { setCurrentSettings } from "./utils/salary";
-import { Header } from "./components/Header";
 import { Tabs } from "./components/Tabs";
 import type { TabId } from "./components/Tabs";
 import { ManualCalc } from "./components/ManualCalc";
@@ -38,7 +37,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white dark:bg-black text-slate-800 dark:text-slate-100">
       <div className="mx-auto max-w-4xl px-4 py-6 space-y-5">
-        <Header />
         <Tabs active={tab} onChange={setTab} />
 
         {tab === "manual" && (
