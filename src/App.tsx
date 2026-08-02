@@ -8,6 +8,7 @@ import { ManualCalc } from "./components/ManualCalc";
 import { SingleCalc } from "./components/SingleCalc";
 import { MultiCalc } from "./components/MultiCalc";
 import { Settings } from "./components/Settings";
+import { SalaryFields } from "./components/ui";
 
 /**
  * 薪资构成 + 个税参数为全局共享状态：单月/多月/手动/设置四处双向同步，
@@ -21,6 +22,11 @@ export default function App() {
     return s;
   });
   const [tab, setTab] = useState<TabId>("manual");
+  const [showWelcome, setShowWelcome] = useState(
+    () =>
+      localStorage.getItem("salary-calc-settings") === null &&
+      localStorage.getItem("salary-calc-welcomed") === null,
+  );
 
   const updateSettings = useCallback((s: UserSettings) => {
     setSettings(s);
@@ -66,6 +72,30 @@ export default function App() {
           </div>
         </footer>
       </div>
+
+      {showWelcome && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-xl max-w-md w-full space-y-4">
+            <div className="space-y-1">
+              <h2 className="font-semibold text-slate-900 dark:text-slate-100">欢迎使用工资计算器</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">首次使用请先设置你的薪资构成</p>
+            </div>
+            <SalaryFields settings={settings} onSettings={updateSettings} />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.setItem("salary-calc-welcomed", "1");
+                  setShowWelcome(false);
+                }}
+                className="px-4 py-2 rounded-lg bg-sky-600 border border-sky-600 text-white text-sm font-medium"
+              >
+                开始使用
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
