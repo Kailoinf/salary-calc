@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import type { UserSettings } from "./utils/settings";
-import { loadSettings, saveSettings, resetSettings } from "./utils/settings";
+import { loadSettings, saveSettings } from "./utils/settings";
 import { setCurrentSettings } from "./utils/salary";
 import { Tabs } from "./components/Tabs";
 import type { TabId } from "./components/Tabs";
@@ -34,12 +34,6 @@ export default function App() {
     saveSettings(s);
   }, []);
 
-  const reset = useCallback(() => {
-    const s = resetSettings();
-    setSettings(s);
-    setCurrentSettings(s);
-  }, []);
-
   return (
     <div className="min-h-screen bg-white dark:bg-black text-slate-800 dark:text-slate-100">
       <div className="mx-auto max-w-4xl px-4 py-6 space-y-5">
@@ -58,7 +52,6 @@ export default function App() {
           <Settings
             settings={settings}
             onSettings={updateSettings}
-            onReset={reset}
           />
         )}
 

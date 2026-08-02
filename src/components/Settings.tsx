@@ -6,11 +6,9 @@ import { Card, DeductionToggles, Field, INPUT, SalaryFields } from "./ui";
 export function Settings({
   settings,
   onSettings,
-  onReset,
 }: {
   settings: UserSettings;
   onSettings: (s: UserSettings) => void;
-  onReset: () => void;
 }) {
   const [drafts, setDrafts] = useState<Record<string, string | null>>({});
 
@@ -37,7 +35,17 @@ export function Settings({
 
   return (
     <div className="space-y-4">
-      <Card title="全局设置">
+      <Card
+        title="全局设置"
+        action={
+          <button
+            onClick={() => { localStorage.clear(); location.reload(); }}
+            className="text-xs px-2 py-1 rounded-md border border-rose-300 dark:border-rose-800 text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950 transition-colors"
+          >
+            清除数据
+          </button>
+        }
+      >
         <SalaryFields settings={settings} onSettings={onSettings} />
         <div className="space-y-3 pt-2">
           <Field label="C班休息日">
@@ -57,12 +65,6 @@ export function Settings({
             onSocial={(b) => onSettings({ ...settings, noSocial: b })}
             onTax={(b) => onSettings({ ...settings, noTax: b })}
           />
-          <button
-            onClick={() => { onReset(); setDrafts({}); }}
-            className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-black text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-          >
-            恢复默认
-          </button>
         </div>
       </Card>
 
@@ -95,14 +97,6 @@ export function Settings({
               </label>
             );
           })}
-        </div>
-        <div className="flex justify-end">
-          <button
-            onClick={() => { localStorage.clear(); location.reload(); }}
-            className="px-4 py-2 rounded-lg border border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400 text-sm font-medium hover:bg-rose-100 dark:hover:bg-rose-900 transition-colors"
-          >
-            清除本地数据
-          </button>
         </div>
       </Card>
 
