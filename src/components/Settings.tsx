@@ -11,6 +11,7 @@ export function Settings({
   onSettings: (s: UserSettings) => void;
 }) {
   const [drafts, setDrafts] = useState<Record<string, string | null>>({});
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const taxFields = [
     {
@@ -39,7 +40,7 @@ export function Settings({
         title="全局设置"
         action={
           <button
-            onClick={() => { localStorage.clear(); location.reload(); }}
+            onClick={() => setConfirmClear(true)}
             className="text-xs px-2 py-1 rounded-md border border-rose-300 dark:border-rose-800 text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950 transition-colors"
           >
             清除数据
@@ -110,6 +111,33 @@ export function Settings({
           </div>
         </div>
       </Card>
+
+      {confirmClear && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-xl max-w-sm w-full space-y-4">
+            <div className="space-y-1">
+              <h2 className="font-semibold text-slate-900 dark:text-slate-100">确认清除数据</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">将清除所有本地设置，且无法恢复</p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmClear(false)}
+                className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-black text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={() => { localStorage.clear(); location.reload(); }}
+                className="px-4 py-2 rounded-lg bg-rose-600 border border-rose-600 text-white text-sm font-medium hover:bg-rose-700 transition-colors"
+              >
+                确认清除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
