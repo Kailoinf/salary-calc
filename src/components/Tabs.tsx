@@ -15,7 +15,7 @@ export function Tabs({
   onChange: (t: TabId) => void;
 }) {
   return (
-    <nav className="flex flex-wrap gap-2">
+    <nav className="flex flex-wrap justify-between gap-2">
       {TABS.map((t) => (
         <button
           key={t.id}
