@@ -76,7 +76,7 @@ export default function App() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-xl max-w-xl w-full my-8">
             <Settings settings={settings} onSettings={updateSettings} />
-            <div className="flex justify-end pt-3">
+            <div className="flex justify-end pt-4">
               <button
                 type="button"
                 onClick={() => setShowSettings(false)}

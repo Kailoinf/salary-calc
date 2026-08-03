@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { UserSettings } from "../utils/settings";
 import { yuanToCents } from "../utils/format";
-import { Card, GlobalSettingsFields, INPUT } from "./ui";
+import { GlobalSettingsFields, INPUT } from "./ui";
 
 export function Settings({
   settings,
@@ -36,21 +36,18 @@ export function Settings({
 
   return (
     <div className="space-y-4">
-      <Card
-        title="全局设置"
-        action={
+      <GlobalSettingsFields settings={settings} onSettings={onSettings} />
+
+      <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">个税参数</h3>
           <button
             onClick={() => setConfirmClear(true)}
             className="text-xs px-2 py-1 rounded-md border border-rose-300 dark:border-rose-800 text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950 transition-colors"
           >
             清除数据
           </button>
-        }
-      >
-        <GlobalSettingsFields settings={settings} onSettings={onSettings} />
-      </Card>
-
-      <Card title="社保个税">
+        </div>
         <div className="grid grid-cols-2 gap-3">
           {taxFields.map((f) => {
             const draft = drafts[f.key];
@@ -80,18 +77,16 @@ export function Settings({
             );
           })}
         </div>
-      </Card>
+      </div>
 
-      <Card title="制作信息">
-        <div className="text-center space-y-2">
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Made by Gakusyun</p>
-          <div className="flex justify-center gap-2 flex-wrap">
-            <span className="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">Hermes</span>
-            <span className="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">DeepSeek V4 Pro</span>
-            <span className="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">GLM 5.2</span>
-          </div>
+      <div className="border-t border-slate-200 dark:border-slate-700 pt-4 text-center space-y-2">
+        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Made by Gakusyun</p>
+        <div className="flex justify-center gap-2 flex-wrap">
+          <span className="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">Hermes</span>
+          <span className="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">DeepSeek V4 Pro</span>
+          <span className="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">GLM 5.2</span>
         </div>
-      </Card>
+      </div>
 
       {confirmClear && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
