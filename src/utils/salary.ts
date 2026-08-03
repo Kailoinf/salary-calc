@@ -12,11 +12,11 @@ export function setCurrentSettings(s: UserSettings): void {
 // ponytail: 社保固定扣款，不再按基数×费率计算
 export const SOCIAL_INSURANCE = 44280; // 442.80 元
 
-export let TAX_THRESHOLD = DEFAULT_SETTINGS.taxThreshold; // 个税起征点
-export let TAX_RATE = DEFAULT_SETTINGS.taxRate; // 个税税率
+let TAX_THRESHOLD = DEFAULT_SETTINGS.taxThreshold; // 个税起征点
+let TAX_RATE = DEFAULT_SETTINGS.taxRate; // 个税税率
 
-export const STANDARD_WORK_DAYS = 21.75;
-export const STANDARD_WORK_HOURS = 8;
+const STANDARD_WORK_DAYS = 21.75;
+const STANDARD_WORK_HOURS = 8;
 
 // 金额一律以「分」参与运算；涉及比例/除法产生小数时，最终结果用 Math.round 取整为分。
 // 比例类（养老/医疗/失业/税率）保持小数不变，整数 × 小数 仍在分域。

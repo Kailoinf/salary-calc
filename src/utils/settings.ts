@@ -58,13 +58,3 @@ export function saveSettings(s: UserSettings): void {
     /* 隐私模式等写入失败，忽略 */
   }
 }
-
-/** 清除已保存设置，返回默认值 */
-export function resetSettings(): UserSettings {
-  try {
-    localStorage.removeItem(KEY);
-  } catch {
-    /* 忽略 */
-  }
-  return { ...DEFAULT_SETTINGS };
-}
