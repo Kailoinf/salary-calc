@@ -7,7 +7,7 @@ import {
   SOCIAL_INSURANCE,
 } from "../utils/salary";
 import { num, yuanToCents } from "../utils/format";
-import { Card, ExportBtn, Field, INPUT, MoneyTable, NetPay, exportSalaryImage, type Row } from "./ui";
+import { Card, Field, INPUT, MoneyTable, NetPay, SmallBtn, exportSalaryImage, type Row } from "./ui";
 
 export function ManualCalc({
   settings,
@@ -96,13 +96,7 @@ export function ManualCalc({
       <Card
         title="工时与奖励"
         action={
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            设置
-          </button>
+          <SmallBtn onClick={onOpenSettings}>设置</SmallBtn>
         }
       >
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -141,11 +135,11 @@ export function ManualCalc({
         </Field>
       </Card>
 
-      <Card title="计算结果" action={<ExportBtn onClick={() => exportSalaryImage({
+      <Card title="计算结果" action={<SmallBtn onClick={() => exportSalaryImage({
         title: "手动算薪",
         rows,
         netPay: r.netPay,
-      })} />}>
+      })}>导出</SmallBtn>}>
         <MoneyTable rows={rows} />
         <NetPay amount={r.netPay} />
       </Card>

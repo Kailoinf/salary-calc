@@ -326,15 +326,15 @@ export function exportSalaryImage(params: {
   }, "image/png");
 }
 
-/** 导出按钮 */
-export function ExportBtn({ onClick }: { onClick: () => void }) {
+/** 卡片右上角小按钮（设置/导出） */
+export function SmallBtn({ onClick, children }: { onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
     >
-      导出
+      {children}
     </button>
   );
 }
