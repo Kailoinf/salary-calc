@@ -1,6 +1,6 @@
 import { DEFAULT_SETTINGS, type UserSettings } from "./settings";
 
-/** 当前生效的个税参数（社保 + 个税），由 App 在启动/修改设置时写入 */
+/** 当前生效的个税参数，由 App 在启动/修改设置时写入（社保为固定常量） */
 export function setCurrentSettings(s: UserSettings): void {
   TAX_THRESHOLD = s.taxThreshold;
   TAX_RATE = s.taxRate;
