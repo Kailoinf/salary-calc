@@ -222,6 +222,36 @@ export function WeekdayToggles({
   );
 }
 
+/** 全局设置字段组：薪资构成 + C班休息日 + 社保/个税开关（设置页与欢迎弹窗共用） */
+export function GlobalSettingsFields({
+  settings,
+  onSettings,
+}: {
+  settings: UserSettings;
+  onSettings: (s: UserSettings) => void;
+}) {
+  return (
+    <>
+      <SalaryFields settings={settings} onSettings={onSettings} />
+      <Field label="C班休息日">
+        <select
+          value={settings.restDayWeekday}
+          onChange={(e) => onSettings({ ...settings, restDayWeekday: Number(e.target.value) })}
+          className={INPUT}
+        >
+          {WEEKDAY_NAMES.map((n, i) => (<option key={i} value={i}>{n}</option>))}
+        </select>
+      </Field>
+      <DeductionToggles
+        noSocial={settings.noSocial}
+        noTax={settings.noTax}
+        onSocial={(b) => onSettings({ ...settings, noSocial: b })}
+        onTax={(b) => onSettings({ ...settings, noTax: b })}
+      />
+    </>
+  );
+}
+
 /** 高分辨率图片导出：传入行数据 + 到手金额，下载为 PNG */
 export function exportSalaryImage(params: {
   title: string;

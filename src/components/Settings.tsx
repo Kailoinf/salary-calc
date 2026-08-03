@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { UserSettings } from "../utils/settings";
-import { WEEKDAY_NAMES, yuanToCents } from "../utils/format";
-import { Card, DeductionToggles, Field, INPUT, SalaryFields } from "./ui";
+import { yuanToCents } from "../utils/format";
+import { Card, GlobalSettingsFields, INPUT } from "./ui";
 
 export function Settings({
   settings,
@@ -47,26 +47,7 @@ export function Settings({
           </button>
         }
       >
-        <SalaryFields settings={settings} onSettings={onSettings} />
-        <div className="space-y-3 pt-2">
-          <Field label="C班休息日">
-            <select
-              value={settings.restDayWeekday}
-              onChange={(e) => onSettings({ ...settings, restDayWeekday: Number(e.target.value) })}
-              className={INPUT}
-            >
-              {WEEKDAY_NAMES.map((n, i) => (
-                <option key={i} value={i}>{n}</option>
-              ))}
-            </select>
-          </Field>
-          <DeductionToggles
-            noSocial={settings.noSocial}
-            noTax={settings.noTax}
-            onSocial={(b) => onSettings({ ...settings, noSocial: b })}
-            onTax={(b) => onSettings({ ...settings, noTax: b })}
-          />
-        </div>
+        <GlobalSettingsFields settings={settings} onSettings={onSettings} />
       </Card>
 
       <Card title="社保个税">

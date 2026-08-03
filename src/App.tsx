@@ -8,7 +8,7 @@ import { ManualCalc } from "./components/ManualCalc";
 import { SingleCalc } from "./components/SingleCalc";
 import { MultiCalc } from "./components/MultiCalc";
 import { Settings } from "./components/Settings";
-import { SalaryFields } from "./components/ui";
+import { GlobalSettingsFields } from "./components/ui";
 
 /**
  * 薪资构成 + 个税参数为全局共享状态：单月/多月/手动/设置四处双向同步，
@@ -71,9 +71,9 @@ export default function App() {
           <div className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-xl max-w-md w-full space-y-4">
             <div className="space-y-1">
               <h2 className="font-semibold text-slate-900 dark:text-slate-100">欢迎使用工资计算器</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">首次使用请先设置你的薪资构成</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">首次使用请先设置薪资构成、休息日和社保个税</p>
             </div>
-            <SalaryFields settings={settings} onSettings={updateSettings} />
+            <GlobalSettingsFields settings={settings} onSettings={updateSettings} />
             <div className="flex justify-end">
               <button
                 type="button"
