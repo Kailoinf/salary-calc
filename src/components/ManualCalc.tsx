@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { UserSettings } from "../utils/settings";
-import type { ShiftType } from "../types";
+import { getWorkDaysInMonth } from "../utils/date";
 import {
   calcBaseHourlyRate,
-  calcMonthlySalary,
   calcTax,
   SOCIAL_INSURANCE,
 } from "../utils/salary";
-import { num, salaryConfig, yuanToCents } from "../utils/format";
+import { num, yuanToCents } from "../utils/format";
 import { Card, ExportBtn, Field, INPUT, MoneyTable, NetPay, exportSalaryImage } from "./ui";
 
 export function ManualCalc({
@@ -25,7 +24,6 @@ export function ManualCalc({
   const [nights, setNights] = useState("0");
   const [adjustment, setAdjustment] = useState("0");
   const touched = useRef(new Set<string>());
-  const cfg = salaryConfig(settings);
 
   // 首次打开根据当月排班自动填充工时，夜班固定0天
   useEffect(() => {
@@ -40,37 +38,29 @@ export function ManualCalc({
         y -= 1;
       }
     }
-    const prevShift: ShiftType = "night";
-    const result = calcMonthlySalary({
-      year: y, month: m,
-      restDayWeekday: settings.restDayWeekday,
-      shiftType: "day",
-      prevShiftType: prevShift,
-      bDay8hDates: [],
-      noOvertimeDates: [],
-      noOvertimeWeekdays: [],
-      config: salaryConfig(settings),
-      noSocial: settings.noSocial,
-      noTax: settings.noTax,
-    });
-    setOvertime(String(result.aDayCount * 3));
-    setBhours(String(result.bDayCount * 11));
-    setFhours(String(result.fDayCount * 11));
+    const stats = getWorkDaysInMonth(
+      y, m,
+      settings.restDayWeekday,
+      "night", "day",
+      [], [],
+    );
+    setOvertime(String(stats.aDayCount * 3));
+    setBhours(String(stats.bDayCount * 11));
+    setFhours(String(stats.fDayCount * 11));
     // ponytail: 夜班固定0，不根据当月排班计算
   }, []);
 
   const r = useMemo(() => {
-    const config = cfg;
-    const hr = calcBaseHourlyRate(config.baseSalary);
+    const hr = calcBaseHourlyRate(settings.baseSalary);
     const ot = Math.max(0, num(overtime, 0));
     const bh = Math.max(0, num(bhours, 0));
     const fh = Math.max(0, num(fhours, 0));
     const nd = Math.max(0, num(nights, 0));
     const fixedTotal =
-      config.baseSalary +
-      config.positionPay +
-      config.fullAttendanceBonus +
-      config.performancePay +
+      settings.baseSalary +
+      settings.positionSalary +
+      settings.attendanceBonus +
+      settings.performanceSalary +
       yuanToCents(num(adjustment, 0));
     const otPay = Math.round(ot * 1.5 * hr);
     const bPay = Math.round(bh * 2 * hr);
@@ -142,10 +132,10 @@ export function ManualCalc({
       <Card title="计算结果" action={<ExportBtn onClick={() => exportSalaryImage({
         title: "手动算薪",
         rows: [
-          { label: "基础工资", amount: cfg.baseSalary },
-          { label: "岗位工资", amount: cfg.positionPay },
-          { label: "全勤奖", amount: cfg.fullAttendanceBonus },
-          { label: "绩效工资", amount: cfg.performancePay },
+          { label: "基础工资", amount: settings.baseSalary },
+          { label: "岗位工资", amount: settings.positionSalary },
+          { label: "全勤奖", amount: settings.attendanceBonus },
+          { label: "绩效工资", amount: settings.performanceSalary },
           { label: `A班加班(${r.ot}h×1.5)`, amount: r.otPay, kind: "income" },
           { label: `B班(${r.bh}h×2)`, amount: r.bPay, kind: "income" },
           { label: `F班(${r.fh}h×3)`, amount: r.fPay, kind: "income" },
@@ -158,10 +148,10 @@ export function ManualCalc({
       })} />}>
         <MoneyTable
           rows={[
-            { label: "基础工资", amount: cfg.baseSalary },
-            { label: "岗位工资", amount: cfg.positionPay },
-            { label: "全勤奖", amount: cfg.fullAttendanceBonus },
-            { label: "绩效工资", amount: cfg.performancePay },
+            { label: "基础工资", amount: settings.baseSalary },
+            { label: "岗位工资", amount: settings.positionSalary },
+            { label: "全勤奖", amount: settings.attendanceBonus },
+            { label: "绩效工资", amount: settings.performanceSalary },
             { label: `A班加班(${r.ot}h×1.5)`, amount: r.otPay, kind: "income" },
             { label: `B班(${r.bh}h×2)`, amount: r.bPay, kind: "income" },
             { label: `F班(${r.fh}h×3)`, amount: r.fPay, kind: "income" },

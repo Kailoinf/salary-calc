@@ -1,6 +1,4 @@
-// 跨组件复用的小工具：金额格式化、元↔分换算、薪资设置映射、周几名称。
-import type { SalaryConfig } from "../types";
-import type { UserSettings } from "./settings";
+// 跨组件复用的小工具：金额格式化、元↔分换算、周几名称。
 
 /** 周几名称：0=周日 ~ 6=周六 */
 export const WEEKDAY_NAMES = [
@@ -22,17 +20,6 @@ export function fmt(cents: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-}
-
-/** UserSettings（持久化形状）→ SalaryConfig（计算输入形状） */
-export function salaryConfig(s: UserSettings): SalaryConfig {
-  return {
-    baseSalary: s.baseSalary,
-    positionPay: s.positionSalary,
-    fullAttendanceBonus: s.attendanceBonus,
-    performancePay: s.performanceSalary,
-    adjustment: s.adjustment,
-  };
 }
 
 /** 解析字符串为数字；非有限数回落 fallback */
