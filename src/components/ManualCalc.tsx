@@ -13,9 +13,11 @@ import { Card, ExportBtn, Field, INPUT, MoneyTable, NetPay, exportSalaryImage } 
 export function ManualCalc({
   settings,
   onSettings,
+  onOpenSettings,
 }: {
   settings: UserSettings;
   onSettings: (s: UserSettings) => void;
+  onOpenSettings: () => void;
 }) {
   const [overtime, setOvertime] = useState("72");
   const [bhours, setBhours] = useState("44");
@@ -90,7 +92,17 @@ export function ManualCalc({
 
   return (
     <div className="space-y-4">
-      <Card title="工时与奖励">
+      <Card
+        title="工时与奖励"
+        action={
+          <button
+            onClick={onOpenSettings}
+            className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            设置
+          </button>
+        }
+      >
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {hourFields.map((f, i) => {
             const key = String(i);

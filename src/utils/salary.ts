@@ -1,10 +1,4 @@
-import type {
-  SalaryConfig,
-  MonthlyInput,
-  MonthlyResult,
-  MultiMonthSummary,
-  ShiftType,
-} from "../types";
+import type { MonthlyInput, MonthlyResult } from "../types";
 import dayjs from "dayjs";
 import { getWorkDaysInMonth, isHoliday } from "./date";
 import { DEFAULT_SETTINGS, type UserSettings } from "./settings";
@@ -126,84 +120,4 @@ export function calcMonthlySalary(input: MonthlyInput): MonthlyResult {
     bDay8hCount,
     baseHourlyRate: Math.round(baseHourlyRate),
   };
-}
-
-/**
- * 多月汇总计算。
- * restDayWeekday 传单值表示所有月份统一；传数组则按月份顺序逐月取值。
- * shiftType 传单值时每月自动翻转（白→夜→白→夜…）；
- * 传数组时按顺序取，prevShiftType 由上一月推断。
- */
-export function calcMultiMonth(
-  startYear: number,
-  startMonth: number,
-  endYear: number,
-  endMonth: number,
-  config: SalaryConfig,
-  restDayWeekday: number | number[],
-  shiftType: ShiftType | ShiftType[],
-  bDay8hDates: number[],
-  noOvertimeWeekdays: number[],
-  noOvertimeDates: number[],
-  noSocial: boolean,
-  noTax: boolean,
-): MultiMonthSummary {
-  const results: MonthlyResult[] = [];
-
-  let y = startYear;
-  let m = startMonth;
-  let index = 0;
-
-  // 第一个月的前月班次：与当月相反
-  const firstShift = Array.isArray(shiftType) ? shiftType[0] : shiftType;
-  let prevShift: ShiftType = firstShift === "night" ? "day" : "night";
-  // 单值时自动每月翻转（白→夜→白→夜…）；数组时取对应索引
-  let autoFlip: ShiftType | null = Array.isArray(shiftType) ? null : firstShift;
-
-  while (y < endYear || (y === endYear && m <= endMonth)) {
-    const rwd = Array.isArray(restDayWeekday)
-      ? (restDayWeekday[index] ?? restDayWeekday[0] ?? 3)
-      : restDayWeekday;
-
-    const currShift: ShiftType = Array.isArray(shiftType)
-      ? (shiftType[index] ?? "day")
-      : autoFlip!;
-
-    // 单值时：每次迭代翻转
-    if (autoFlip !== null) {
-      autoFlip = autoFlip === "night" ? "day" : "night";
-    }
-
-    results.push(
-      calcMonthlySalary({
-        year: y,
-        month: m,
-        restDayWeekday: rwd,
-        shiftType: currShift,
-        prevShiftType: prevShift,
-        bDay8hDates,
-        noOvertimeDates,
-        noOvertimeWeekdays,
-        config,
-        noSocial,
-        noTax,
-      }),
-    );
-
-    prevShift = currShift;
-    m++;
-    if (m > 12) {
-      m = 1;
-      y++;
-    }
-    index++;
-  }
-
-  const totalGross = results.reduce((sum, r) => sum + r.grossPay, 0);
-  const totalSocial = results.reduce((sum, r) => sum + r.socialInsurance, 0);
-  const totalTax = results.reduce((sum, r) => sum + r.tax, 0);
-  const totalNet = results.reduce((sum, r) => sum + r.netPay, 0);
-  const averageNet = results.length > 0 ? Math.round(totalNet / results.length) : 0;
-
-  return { results, totalGross, totalSocial, totalTax, totalNet, averageNet };
 }

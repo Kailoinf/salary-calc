@@ -197,31 +197,6 @@ export function Field({
   );
 }
 
-/** 周几多选切换 */
-export function WeekdayToggles({
-  selected,
-  onChange,
-}: {
-  selected: number[];
-  onChange: (a: number[]) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-3">
-      {WEEKDAY_NAMES.map((n, i) => (
-        <label key={i} className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
-          <input
-            type="checkbox"
-            checked={selected.includes(i)}
-            onChange={() => onChange(selected.includes(i) ? selected.filter((x) => x !== i) : [...selected, i])}
-            className="rounded"
-          />
-          {n}
-        </label>
-      ))}
-    </div>
-  );
-}
-
 /** 全局设置字段组：薪资构成 + C班休息日 + 社保/个税开关（设置页与欢迎弹窗共用） */
 export function GlobalSettingsFields({
   settings,

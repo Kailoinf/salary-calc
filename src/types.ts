@@ -57,13 +57,3 @@ export interface MonthlyResult {
   bDay8hCount: number;   // B班中只上8h的天数
   baseHourlyRate: number; // 基础时薪，分/小时
 }
-
-/** 多月汇总（金额字段均为分） */
-export interface MultiMonthSummary {
-  results: MonthlyResult[];
-  totalGross: number;
-  totalSocial: number;
-  totalTax: number;
-  totalNet: number;
-  averageNet: number;
-}

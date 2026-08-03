@@ -11,13 +11,6 @@ export function isHoliday(date: dayjs.Dayjs): boolean {
 }
 
 /**
- * 判断某天是否为 C 班（休息日），restDayWeekday: 0=周日~6=周六。
- */
-export function isRestDay(date: dayjs.Dayjs, restDayWeekday: number): boolean {
-  return date.day() === restDayWeekday;
-}
-
-/**
  * 判断某天是否为 B 班（C 班前一天）。
  */
 export function isBDay(date: dayjs.Dayjs, restDayWeekday: number): boolean {
@@ -37,47 +30,6 @@ export function getFirstRestDay(
     d = d.add(1, "day");
   }
   return d.date();
-}
-
-/**
- * 返回当月所有 B 班日（C班前一天，排除F班），供 UI 渲染 B班8h 勾选列表。
- */
-export function getBDayDates(
-  year: number,
-  month: number,
-  restDayWeekday: number,
-): dayjs.Dayjs[] {
-  const start = dayjs(new Date(year, month - 1, 1));
-  const daysInMonth = start.daysInMonth();
-  const out: dayjs.Dayjs[] = [];
-  for (let i = 0; i < daysInMonth; i++) {
-    const d = start.add(i, "day");
-    if ((d.day() + 1) % 7 !== restDayWeekday) continue; // 不是 B 班
-    if (isHoliday(d)) continue; // F 班不算 B 班
-    out.push(d);
-  }
-  return out;
-}
-
-/**
- * 返回当月所有 A 班日（排除 C/B/F 班），供 UI 渲染不加班勾选列表。
- */
-export function getADayDates(
-  year: number,
-  month: number,
-  restDayWeekday: number,
-): dayjs.Dayjs[] {
-  const start = dayjs(new Date(year, month - 1, 1));
-  const daysInMonth = start.daysInMonth();
-  const out: dayjs.Dayjs[] = [];
-  for (let i = 0; i < daysInMonth; i++) {
-    const d = start.add(i, "day");
-    if (d.day() === restDayWeekday) continue;
-    if ((d.day() + 1) % 7 === restDayWeekday) continue;
-    if (isHoliday(d)) continue;
-    out.push(d);
-  }
-  return out;
 }
 
 /** 逐日判定白/夜班（休息日之前沿用上月，之后用本月） */
