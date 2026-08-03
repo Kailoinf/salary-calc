@@ -19,8 +19,9 @@ function getFirstRestDay(
   month: number,
   restDayWeekday: number,
 ): number {
+  const target = ((restDayWeekday % 7) + 7) % 7; // 防御非法值，避免死循环
   let d = dayjs(new Date(year, month - 1, 1));
-  while (d.day() !== restDayWeekday) {
+  while (d.day() !== target) {
     d = d.add(1, "day");
   }
   return d.date();
