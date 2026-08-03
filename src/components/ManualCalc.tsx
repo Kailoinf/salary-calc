@@ -158,7 +158,10 @@ export function ManualCalc({
       })} />}>
         <MoneyTable
           rows={[
-            { label: "固定薪资合计", amount: r.fixedTotal },
+            { label: "基础工资", amount: cfg.baseSalary },
+            { label: "岗位工资", amount: cfg.positionPay },
+            { label: "全勤奖", amount: cfg.fullAttendanceBonus },
+            { label: "绩效工资", amount: cfg.performancePay },
             { label: `A班加班(${r.ot}h×1.5)`, amount: r.otPay, kind: "income" },
             { label: `B班(${r.bh}h×2)`, amount: r.bPay, kind: "income" },
             { label: `F班(${r.fh}h×3)`, amount: r.fPay, kind: "income" },
