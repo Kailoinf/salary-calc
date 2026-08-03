@@ -47,15 +47,12 @@ export function getWorkDaysInMonth(
   restDayWeekday: number,
   prevShiftType: ShiftType,
   currShiftType: ShiftType,
-  noOvertimeDates: number[],
-  noOvertimeWeekdays: number[],
 ): {
   totalDays: number;
   aDayCount: number;
   bDayCount: number;
   fDayCount: number;
   nightShiftDays: number;
-  noOvertimeCount: number;
 } {
   const start = dayjs(new Date(year, month - 1, 1));
   const daysInMonth = start.daysInMonth();
@@ -96,10 +93,7 @@ export function getWorkDaysInMonth(
   let aDayCount = 0;
   let bDayCount = 0;
   let fDayCount = 0;
-  let noOvertimeCount = 0;
   let nightShiftDays = 0;
-  const noOvertimeDateSet = new Set(noOvertimeDates);
-  const noOvertimeWeekdaySet = new Set(noOvertimeWeekdays);
 
   for (let i = 0; i < daysInMonth; i++) {
     const d = start.add(i, "day");
@@ -130,8 +124,6 @@ export function getWorkDaysInMonth(
       bDayCount++;
     } else {
       aDayCount++;
-      if (noOvertimeDateSet.has(dom) || noOvertimeWeekdaySet.has(d.day()))
-        noOvertimeCount++;
     }
   }
 
@@ -141,6 +133,5 @@ export function getWorkDaysInMonth(
     bDayCount,
     fDayCount,
     nightShiftDays,
-    noOvertimeCount,
   };
 }
