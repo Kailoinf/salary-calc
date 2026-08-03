@@ -69,7 +69,7 @@ export function Settings({
                   onChange={(e) => setDrafts((prev) => ({ ...prev, [f.key]: e.target.value }))}
                   onBlur={() => {
                     const raw = drafts[f.key];
-                    if (raw === null || raw === undefined) return;
+                    if (raw === null || raw === undefined || raw === "") return;
                     const v = Number(raw);
                     if (Number.isFinite(v) && v >= f.min && (f.max === undefined || v <= f.max))
                       onSettings(f.fromValue(v, settings));

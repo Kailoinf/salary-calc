@@ -66,7 +66,7 @@ export function SalaryFields({
               onChange={(e) => setDrafts((prev) => ({ ...prev, [f.key]: e.target.value }))}
               onBlur={() => {
                 const raw = drafts[f.key];
-                if (raw === null || raw === undefined) return;
+                if (raw === null || raw === undefined || raw === "") return;
                 const v = Number(raw);
                 if (Number.isFinite(v) && v >= 0)
                   onSettings({ ...settings, [f.key]: yuanToCents(v) });
