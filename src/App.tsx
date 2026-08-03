@@ -56,9 +56,7 @@ export default function App() {
         )}
 
         <footer className="text-center text-xs text-slate-300 dark:text-slate-600 pt-4 space-y-1">
-          <div>
-            <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer" className="hover:text-slate-400">鄂ICP备2024069158号</a>
-          </div>
+          <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer" className="hover:text-slate-400">鄂ICP备2024069158号</a>
           <div className="inline-flex items-center gap-1">
             <img src="https://start.gxj62.cn/police.webp" alt="公安备案" className="w-3.5 h-4 inline" />
             <a href="https://beian.mps.gov.cn" target="_blank" rel="noreferrer" className="hover:text-slate-400">鄂公网安备42050002420933号</a>
@@ -68,7 +66,7 @@ export default function App() {
 
       {showWelcome && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-xl max-w-md w-full space-y-4">
+          <div className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-xl max-w-md w-full space-y-3">
             <div className="space-y-1">
               <h2 className="font-semibold text-slate-900 dark:text-slate-100">欢迎使用工资计算器</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400">首次使用请先设置薪资构成、休息日和社保个税</p>
