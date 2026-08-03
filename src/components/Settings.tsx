@@ -36,7 +36,10 @@ export function Settings({
 
   return (
     <div className="space-y-4">
-      <GlobalSettingsFields settings={settings} onSettings={onSettings} />
+      <div className="space-y-3">
+        <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">全局设置</h3>
+        <GlobalSettingsFields settings={settings} onSettings={onSettings} />
+      </div>
 
       <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-3">
         <div className="flex items-center justify-between">
@@ -80,6 +83,7 @@ export function Settings({
       </div>
 
       <div className="border-t border-slate-200 dark:border-slate-700 pt-4 text-center space-y-2">
+        <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">制作信息</h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Made by Gakusyun</p>
         <div className="flex justify-center gap-2 flex-wrap">
           <span className="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">Hermes</span>
