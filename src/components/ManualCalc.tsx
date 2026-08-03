@@ -112,7 +112,7 @@ export function ManualCalc({
             );
           })}
         </div>
-        <Field label="奖励与惩罚" className="pt-3">
+        <Field label="奖励与惩罚">
           <input
             type="number"
             step="10"
