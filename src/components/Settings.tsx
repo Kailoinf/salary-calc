@@ -4,6 +4,27 @@ import type { UserSettings } from "../utils/settings";
 import { yuanToCents } from "../utils/format";
 import { GlobalSettingsFields, INPUT } from "./ui";
 
+const taxFields = [
+  {
+    key: "taxThreshold" as const,
+    label: "个税起征点",
+    step: "100",
+    min: 0,
+    max: undefined as number | undefined,
+    toValue: (settings: UserSettings) => String(settings.taxThreshold / 100),
+    fromValue: (v: number, s: UserSettings) => ({ ...s, taxThreshold: yuanToCents(v) }),
+  },
+  {
+    key: "taxRate" as const,
+    label: "个税税率",
+    step: "0.001",
+    min: 0,
+    max: 1,
+    toValue: (settings: UserSettings) => String(settings.taxRate),
+    fromValue: (v: number, s: UserSettings) => ({ ...s, taxRate: v }),
+  },
+];
+
 export function Settings({
   settings,
   onSettings,
@@ -13,27 +34,6 @@ export function Settings({
 }) {
   const [drafts, setDrafts] = useState<Record<string, string | null>>({});
   const [confirmClear, setConfirmClear] = useState(false);
-
-  const taxFields = [
-    {
-      key: "taxThreshold" as const,
-      label: "个税起征点",
-      step: "100",
-      min: 0,
-      max: undefined as number | undefined,
-      toValue: (settings: UserSettings) => String(settings.taxThreshold / 100),
-      fromValue: (v: number, s: UserSettings) => ({ ...s, taxThreshold: yuanToCents(v) }),
-    },
-    {
-      key: "taxRate" as const,
-      label: "个税税率",
-      step: "0.001",
-      min: 0,
-      max: 1,
-      toValue: (settings: UserSettings) => String(settings.taxRate),
-      fromValue: (v: number, s: UserSettings) => ({ ...s, taxRate: v }),
-    },
-  ];
 
   return (
     <div className="space-y-4">

@@ -140,6 +140,28 @@ export function NetPay({
   );
 }
 
+function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (b: boolean) => void;
+}) {
+  return (
+    <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="rounded"
+      />
+      {label}
+    </label>
+  );
+}
+
 /** 不交社保 / 不交个税 开关 */
 export function DeductionToggles({
   noSocial,
@@ -152,25 +174,6 @@ export function DeductionToggles({
   onSocial: (b: boolean) => void;
   onTax: (b: boolean) => void;
 }) {
-  const Toggle = ({
-    label,
-    checked,
-    onChange,
-  }: {
-    label: string;
-    checked: boolean;
-    onChange: (b: boolean) => void;
-  }) => (
-    <label className="inline-flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="rounded"
-      />
-      {label}
-    </label>
-  );
   return (
     <div className="flex gap-4">
       <Toggle label="不交社保" checked={noSocial} onChange={onSocial} />

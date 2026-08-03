@@ -78,6 +78,20 @@ export function ManualCalc({
     { label: "夜班天数", step: "1", value: nights, set: setNights },
   ];
 
+  const rows: { label: string; amount: number; kind?: "income" | "deduction" | "total" }[] = [
+    { label: "基础工资", amount: settings.baseSalary },
+    { label: "岗位工资", amount: settings.positionSalary },
+    { label: "全勤奖", amount: settings.attendanceBonus },
+    { label: "绩效工资", amount: settings.performanceSalary },
+    { label: `A班加班(${r.ot}h×1.5)`, amount: r.otPay, kind: "income" },
+    { label: `B班(${r.bh}h×2)`, amount: r.bPay, kind: "income" },
+    { label: `F班(${r.fh}h×3)`, amount: r.fPay, kind: "income" },
+    { label: `夜班补贴(${r.nd}天)`, amount: r.nightPay, kind: "income" },
+    { label: "税前总工资", amount: r.grossPay, kind: "total" },
+    { label: "社保扣除", amount: r.social, kind: "deduction" },
+    { label: "个税", amount: r.tax, kind: "deduction" },
+  ];
+
   return (
     <div className="space-y-4">
       <Card
@@ -129,36 +143,10 @@ export function ManualCalc({
 
       <Card title="计算结果" action={<ExportBtn onClick={() => exportSalaryImage({
         title: "手动算薪",
-        rows: [
-          { label: "基础工资", amount: settings.baseSalary },
-          { label: "岗位工资", amount: settings.positionSalary },
-          { label: "全勤奖", amount: settings.attendanceBonus },
-          { label: "绩效工资", amount: settings.performanceSalary },
-          { label: `A班加班(${r.ot}h×1.5)`, amount: r.otPay, kind: "income" },
-          { label: `B班(${r.bh}h×2)`, amount: r.bPay, kind: "income" },
-          { label: `F班(${r.fh}h×3)`, amount: r.fPay, kind: "income" },
-          { label: `夜班补贴(${r.nd}天)`, amount: r.nightPay, kind: "income" },
-          { label: "税前总工资", amount: r.grossPay, kind: "total" },
-          { label: "社保扣除", amount: r.social, kind: "deduction" },
-          { label: "个税", amount: r.tax, kind: "deduction" },
-        ],
+        rows,
         netPay: r.netPay,
       })} />}>
-        <MoneyTable
-          rows={[
-            { label: "基础工资", amount: settings.baseSalary },
-            { label: "岗位工资", amount: settings.positionSalary },
-            { label: "全勤奖", amount: settings.attendanceBonus },
-            { label: "绩效工资", amount: settings.performanceSalary },
-            { label: `A班加班(${r.ot}h×1.5)`, amount: r.otPay, kind: "income" },
-            { label: `B班(${r.bh}h×2)`, amount: r.bPay, kind: "income" },
-            { label: `F班(${r.fh}h×3)`, amount: r.fPay, kind: "income" },
-            { label: `夜班补贴(${r.nd}天)`, amount: r.nightPay, kind: "income" },
-            { label: "税前总工资", amount: r.grossPay, kind: "total" },
-            { label: "社保扣除", amount: r.social, kind: "deduction" },
-            { label: "个税", amount: r.tax, kind: "deduction" },
-          ]}
-        />
+        <MoneyTable rows={rows} />
         <NetPay amount={r.netPay} />
       </Card>
     </div>
