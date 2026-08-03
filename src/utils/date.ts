@@ -57,7 +57,8 @@ export function getWorkDaysInMonth(
 } {
   const start = dayjs(new Date(year, month - 1, 1));
   const daysInMonth = start.daysInMonth();
-  const firstRest = getFirstRestDay(year, month, restDayWeekday);
+  const rest = ((restDayWeekday % 7) + 7) % 7; // 防御非法值，统一归一化
+  const firstRest = getFirstRestDay(year, month, rest);
 
   // ==== 第一遍：收集法定节假日 + 计算冲突后移 ====
   const holidayDateSet = new Set<number>();
@@ -71,8 +72,8 @@ export function getWorkDaysInMonth(
 
   for (const hd of holidayDateSet) {
     const dow = new Date(year, month - 1, hd).getDay();
-    const isC = dow === restDayWeekday;
-    const isB = (dow + 1) % 7 === restDayWeekday;
+    const isC = dow === rest;
+    const isB = (dow + 1) % 7 === rest;
 
     if (isC) {
       const cTarget = hd + 1;
@@ -110,7 +111,7 @@ export function getWorkDaysInMonth(
     }
 
     // 2) C 班（休息日，不出勤）
-    const isStdC = d.day() === restDayWeekday;
+    const isStdC = d.day() === rest;
     const isShiftedC = shiftedCDates.has(dom);
     if ((isStdC || isShiftedC) && !shiftedBDates.has(dom)) continue;
 
@@ -119,7 +120,7 @@ export function getWorkDaysInMonth(
     if (shift === "night") nightShiftDays++;
 
     // 4) B 班 / A 班
-    const isStdB = isBDay(d, restDayWeekday) && !shiftedCDates.has(dom);
+    const isStdB = isBDay(d, rest) && !shiftedCDates.has(dom);
     const isShiftedB = shiftedBDates.has(dom);
     if (isStdB || isShiftedB) {
       bDayCount++;
