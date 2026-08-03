@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { UserSettings } from "./utils/settings";
 import { loadSettings, saveSettings } from "./utils/settings";
 import { setCurrentSettings } from "./utils/salary";
@@ -29,6 +29,15 @@ export default function App() {
     setCurrentSettings(s);
     saveSettings(s);
   }, []);
+
+  // 弹窗打开时锁定页面滚动
+  useEffect(() => {
+    if (showWelcome || showSettings) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [showWelcome, showSettings]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-slate-800 dark:text-slate-100">
