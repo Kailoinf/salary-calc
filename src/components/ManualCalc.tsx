@@ -23,7 +23,7 @@ export function ManualCalc({
   const [adjustment, setAdjustment] = useState("0");
   const touched = useRef(new Set<string>());
 
-  // 首次打开根据当月排班自动填充工时，夜班固定0天
+  // 根据当月排班自动填充工时；休息日设置变化时重新填充，夜班固定0天
   useEffect(() => {
     const now = new Date();
     let y = now.getFullYear();
@@ -45,7 +45,7 @@ export function ManualCalc({
     setBhours(String(stats.bDayCount * 11));
     setFhours(String(stats.fDayCount * 11));
     // ponytail: 夜班固定0，不根据当月排班计算
-  }, []);
+  }, [settings.restDayWeekday]);
 
   const r = useMemo(() => {
     const hr = calcBaseHourlyRate(settings.baseSalary);
