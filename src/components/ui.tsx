@@ -275,16 +275,14 @@ export function exportSalaryImage(params: {
 
   // table
   const drawRow = (label: string, amount: string, kind?: string) => {
-    ctx.font = `${14*scale}px ${fontFam}`;
+    ctx.font = kind === "total" ? `bold ${14*scale}px ${fontFam}` : `${14*scale}px ${fontFam}`;
     ctx.textAlign = "left";
     ctx.fillStyle = kind === "total" ? "#0f172a" : "#475569";
-    if (kind === "total") ctx.font = `bold ${14*scale}px ${fontFam}`;
     ctx.fillText(label, pad, y);
     ctx.textAlign = "right";
     if (kind === "income") ctx.fillStyle = "#059669";
     else if (kind === "deduction") ctx.fillStyle = "#e11d48";
     else ctx.fillStyle = "#0f172a";
-    if (kind === "total") ctx.font = `bold ${14*scale}px ${fontFam}`;
     ctx.fillText(amount, w - pad, y);
   };
 
