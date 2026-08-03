@@ -43,6 +43,10 @@ export function loadSettings(): UserSettings {
       if (k === "noSocial" || k === "noTax") {
         if (typeof v === "boolean") target[k] = v;
       } else if (typeof v === "number" && Number.isFinite(v)) {
+        // 范围校验：损坏数据回落默认值（adjustment 允许负值=惩罚）
+        if (k === "restDayWeekday" && (v < 0 || v > 6 || !Number.isInteger(v))) return;
+        if (k === "taxRate" && (v < 0 || v > 1)) return;
+        if (k !== "adjustment" && v < 0) return;
         target[k] = v;
       }
     });

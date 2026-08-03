@@ -324,6 +324,7 @@ export function exportSalaryImage(params: {
     a.href = URL.createObjectURL(b);
     a.download = `薪资_${new Date().toISOString().slice(0, 10)}.png`;
     a.click();
+    URL.revokeObjectURL(a.href);
   }, "image/png");
 }
 
