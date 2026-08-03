@@ -6,6 +6,16 @@
 import { Lunar, Solar } from "lunar-typescript";
 
 export function getLegalHolidays(year: number): Map<string, string> {
+  const cached = holidayCache.get(year);
+  if (cached) return cached;
+  const map = buildHolidays(year);
+  holidayCache.set(year, map);
+  return map;
+}
+
+const holidayCache = new Map<number, Map<string, string>>();
+
+function buildHolidays(year: number): Map<string, string> {
   const map = new Map<string, string>();
 
   // 元旦 1月1日

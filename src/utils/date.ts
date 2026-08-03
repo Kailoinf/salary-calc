@@ -2,25 +2,19 @@ import dayjs from "dayjs";
 import type { ShiftType } from "../types";
 import { getLegalHolidays } from "./holidays";
 
-/**
- * 判断某天是否为法定节假日（F班，3倍工资）。
- */
-export function isHoliday(date: dayjs.Dayjs): boolean {
+/** 判断某天是否为法定节假日（F班，3倍工资）。 */
+function isHoliday(date: dayjs.Dayjs): boolean {
   const holidays = getLegalHolidays(date.year());
   return holidays.has(date.format("YYYY-MM-DD"));
 }
 
-/**
- * 判断某天是否为 B 班（C 班前一天）。
- */
-export function isBDay(date: dayjs.Dayjs, restDayWeekday: number): boolean {
+/** 判断某天是否为 B 班（C 班前一天）。 */
+function isBDay(date: dayjs.Dayjs, restDayWeekday: number): boolean {
   return (date.day() + 1) % 7 === restDayWeekday;
 }
 
-/**
- * 返回当月第一个休息日是几号（1-31）。
- */
-export function getFirstRestDay(
+/** 返回当月第一个休息日是几号（1-31）。 */
+function getFirstRestDay(
   year: number,
   month: number,
   restDayWeekday: number,

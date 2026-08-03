@@ -9,7 +9,7 @@ import { GlobalSettingsFields } from "./components/ui";
 /**
  * 薪资构成 + 个税参数为全局共享状态：手动算薪 / 设置弹层 / 欢迎弹窗 三处双向同步，
  * 持久化到 localStorage。每次变更须同步写入模块级个税阈值/税率
- * (setCurrentSettings)，calc* 才会用新值。
+ * (setCurrentSettings)，calcTax 才会用新值。
  */
 export default function App() {
   const [settings, setSettings] = useState<UserSettings>(() => {
@@ -44,7 +44,6 @@ export default function App() {
       <div className="mx-auto max-w-4xl px-4 py-6 space-y-5">
         <ManualCalc
           settings={settings}
-          onSettings={updateSettings}
           onOpenSettings={() => setShowSettings(true)}
         />
 
@@ -58,8 +57,9 @@ export default function App() {
       </div>
 
       {showWelcome && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-xl max-w-md w-full space-y-3">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 p-4">
+          <div className="flex min-h-full items-center justify-center">
+            <div className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-xl max-w-md w-full space-y-3">
             <div className="space-y-1">
               <h2 className="font-semibold text-slate-900 dark:text-slate-100">欢迎使用工资计算器</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400">首次使用请先设置薪资构成、休息日和社保个税</p>
@@ -79,11 +79,13 @@ export default function App() {
             </div>
           </div>
         </div>
+        </div>
       )}
 
       {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-xl max-w-xl w-full my-8">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 p-4">
+          <div className="flex min-h-full items-center justify-center">
+            <div className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-xl max-w-xl w-full my-8">
             <Settings settings={settings} onSettings={updateSettings} />
             <div className="flex justify-end pt-4">
               <button
@@ -95,6 +97,7 @@ export default function App() {
               </button>
             </div>
           </div>
+        </div>
         </div>
       )}
     </div>

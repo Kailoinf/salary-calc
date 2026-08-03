@@ -39,10 +39,11 @@ export function loadSettings(): UserSettings {
     const parsed = JSON.parse(raw) as Partial<Record<keyof UserSettings, unknown>>;
     (Object.keys(s) as (keyof UserSettings)[]).forEach((k) => {
       const v = parsed[k];
+      const target = s as Record<string, unknown>;
       if (k === "noSocial" || k === "noTax") {
-        if (typeof v === "boolean") (s as any)[k] = v;
+        if (typeof v === "boolean") target[k] = v;
       } else if (typeof v === "number" && Number.isFinite(v)) {
-        (s as any)[k] = v;
+        target[k] = v;
       }
     });
   } catch {

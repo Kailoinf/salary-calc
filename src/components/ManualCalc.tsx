@@ -11,11 +11,9 @@ import { Card, ExportBtn, Field, INPUT, MoneyTable, NetPay, exportSalaryImage } 
 
 export function ManualCalc({
   settings,
-  onSettings,
   onOpenSettings,
 }: {
   settings: UserSettings;
-  onSettings: (s: UserSettings) => void;
   onOpenSettings: () => void;
 }) {
   const [overtime, setOvertime] = useState("72");
@@ -105,7 +103,7 @@ export function ManualCalc({
                   value={f.value}
                   onChange={(e) => { f.set(e.target.value); touched.current.add(key); }}
                   onBlur={(e) => {
-                    if (touched.current.has(key) && (e.target as any).value === "") f.set("0");
+                    if (touched.current.has(key) && (e.target as HTMLInputElement).value === "") f.set("0");
                   }}
                   onFocus={() => touched.current.add(key)}
                   className={INPUT}
@@ -121,7 +119,7 @@ export function ManualCalc({
             value={adjustment}
             onChange={(e) => { setAdjustment(e.target.value); touched.current.add("adj"); }}
             onBlur={(e) => {
-              if (touched.current.has("adj") && (e.target as any).value === "") setAdjustment("0");
+              if (touched.current.has("adj") && (e.target as HTMLInputElement).value === "") setAdjustment("0");
             }}
             onFocus={() => touched.current.add("adj")}
             className={INPUT}
