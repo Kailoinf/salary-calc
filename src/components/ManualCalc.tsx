@@ -7,7 +7,7 @@ import {
   SOCIAL_INSURANCE,
 } from "../utils/salary";
 import { num, yuanToCents } from "../utils/format";
-import { Card, ExportBtn, Field, INPUT, MoneyTable, NetPay, exportSalaryImage } from "./ui";
+import { Card, ExportBtn, Field, INPUT, MoneyTable, NetPay, exportSalaryImage, type Row } from "./ui";
 
 export function ManualCalc({
   settings,
@@ -78,7 +78,7 @@ export function ManualCalc({
     { label: "夜班天数", step: "1", value: nights, set: setNights },
   ];
 
-  const rows: { label: string; amount: number; kind?: "income" | "deduction" | "total" }[] = [
+  const rows: Row[] = [
     { label: "基础工资", amount: settings.baseSalary },
     { label: "岗位工资", amount: settings.positionSalary },
     { label: "全勤奖", amount: settings.attendanceBonus },

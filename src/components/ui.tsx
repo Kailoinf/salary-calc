@@ -233,7 +233,7 @@ export function GlobalSettingsFields({
 /** 高分辨率图片导出：传入行数据 + 到手金额，下载为 PNG */
 export function exportSalaryImage(params: {
   title: string;
-  rows: { label: string; amount: number; kind?: "income" | "deduction" | "total" }[];
+  rows: Row[];
   netPay: number;
 }) {
   const { title, rows, netPay } = params;
