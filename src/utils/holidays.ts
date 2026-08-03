@@ -5,7 +5,7 @@
  */
 import { Lunar, Solar } from "lunar-typescript";
 
-export function getLegalHolidays(year: number): Map<string, string> {
+export function getLegalHolidays(year: number): Set<string> {
   const cached = holidayCache.get(year);
   if (cached) return cached;
   const map = buildHolidays(year);
@@ -13,49 +13,49 @@ export function getLegalHolidays(year: number): Map<string, string> {
   return map;
 }
 
-const holidayCache = new Map<number, Map<string, string>>();
+const holidayCache = new Map<number, Set<string>>();
 
-function buildHolidays(year: number): Map<string, string> {
-  const map = new Map<string, string>();
+function buildHolidays(year: number): Set<string> {
+  const set = new Set<string>();
 
   // 元旦 1月1日
-  map.set(fmt(year, 1, 1), "元旦");
+  set.add(fmt(year, 1, 1));
 
   // 春节 4天：除夕 + 正月初一~初三
-  addSpringFestival(year, map);
+  addSpringFestival(year, set);
 
   // 清明节（遍历4月初找"清明"节气）
   for (let d = 1; d <= 10; d++) {
     const s = Solar.fromYmd(year, 4, d);
-    if (s.getLunar().getJieQi() === "清明") { map.set(s.toYmd(), "清明节"); break; }
+    if (s.getLunar().getJieQi() === "清明") { set.add(s.toYmd()); break; }
   }
 
   // 劳动节 5月1-2日
-  map.set(fmt(year, 5, 1), "劳动节");
-  map.set(fmt(year, 5, 2), "劳动节");
+  set.add(fmt(year, 5, 1));
+  set.add(fmt(year, 5, 2));
 
   // 端午节 农历五月初五
-  map.set(Lunar.fromYmd(year, 5, 5).getSolar().toYmd(), "端午节");
+  set.add(Lunar.fromYmd(year, 5, 5).getSolar().toYmd());
 
   // 中秋节 农历八月十五
-  map.set(Lunar.fromYmd(year, 8, 15).getSolar().toYmd(), "中秋节");
+  set.add(Lunar.fromYmd(year, 8, 15).getSolar().toYmd());
 
   // 国庆节 10月1-3日
-  for (let d = 1; d <= 3; d++) map.set(fmt(year, 10, d), "国庆节");
+  for (let d = 1; d <= 3; d++) set.add(fmt(year, 10, d));
 
-  return map;
+  return set;
 }
 
 /** 春节 = 除夕 + 初一~初三，共4天 */
-function addSpringFestival(year: number, map: Map<string, string>): void {
+function addSpringFestival(year: number, set: Set<string>): void {
   // 正月初一
   const firstDay = Lunar.fromYmd(year, 1, 1).getSolar();
   // 除夕 = 正月初一的前一天
   const chuxi = Solar.fromYmd(firstDay.getYear(), firstDay.getMonth(), firstDay.getDay()).next(-1);
-  map.set(chuxi.toYmd(), "春节");
+  set.add(chuxi.toYmd());
   // 初一~初三
   for (let d = 1; d <= 3; d++) {
-    map.set(Lunar.fromYmd(year, 1, d).getSolar().toYmd(), "春节");
+    set.add(Lunar.fromYmd(year, 1, d).getSolar().toYmd());
   }
 }
 
