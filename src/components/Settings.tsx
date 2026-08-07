@@ -42,7 +42,7 @@ export function Settings({
           <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">全局设置</h3>
           <button
             onClick={() => setConfirmClear(true)}
-            className="text-xs px-2 py-1 rounded-md border border-rose-300 dark:border-rose-800 text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950 transition-colors"
+            className="text-xs px-2 py-1 rounded-md border border-rose-300 dark:border-rose-800 text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-black transition-colors"
           >
             清除数据
           </button>
@@ -87,9 +87,9 @@ export function Settings({
         <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 text-left">制作信息</h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Made by Gakusyun</p>
         <div className="flex justify-center gap-2 flex-wrap">
-          <span className="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">Hermes</span>
-          <span className="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">DeepSeek V4 Pro</span>
-          <span className="text-xs bg-sky-50 dark:bg-sky-900/30 text-sky-600 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">GLM 5.2</span>
+          <span className="text-xs bg-sky-50 dark:bg-black text-sky-600 dark:text-sky-400 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">Hermes</span>
+          <span className="text-xs bg-sky-50 dark:bg-black text-sky-600 dark:text-sky-400 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">DeepSeek V4 Pro</span>
+          <span className="text-xs bg-sky-50 dark:bg-black text-sky-600 dark:text-sky-400 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">GLM 5.2</span>
         </div>
       </div>
 
@@ -105,7 +105,7 @@ export function Settings({
               <button
                 type="button"
                 onClick={() => setConfirmClear(false)}
-                className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-black text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-black text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-200 dark:hover:bg-black transition-colors"
               >
                 取消
               </button>

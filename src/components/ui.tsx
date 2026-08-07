@@ -131,7 +131,7 @@ export function NetPay({
   amount: number;
 }) {
   return (
-    <div className="flex items-center justify-between bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 rounded-lg px-4 py-3">
+    <div className="flex items-center justify-between bg-emerald-50 dark:bg-black border border-emerald-200 dark:border-emerald-900 rounded-lg px-4 py-3">
       <span className="font-medium text-emerald-800 dark:text-emerald-300">{label}</span>
       <span className="text-xl font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
         {fmt(amount)}
@@ -332,7 +332,7 @@ export function SmallBtn({ onClick, children }: { onClick: () => void; children:
     <button
       type="button"
       onClick={onClick}
-      className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+      className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-black transition-colors"
     >
       {children}
     </button>
