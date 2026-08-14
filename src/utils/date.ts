@@ -42,14 +42,14 @@ function dayShift(
  * 发薪日当天及之前显示上月（发的是上月工资），发薪日次日起显示当月。
  */
 export function getPayrollMonth(now: Date): { year: number; month: number } {
-  const y = now.getFullYear();
-  const m = now.getMonth() + 1;
-  const d15 = new Date(y, m - 1, 15).getDay();
+  const d = dayjs(now);
+  const d15 = dayjs(new Date(d.year(), d.month(), 15)).day();
   const payDay = d15 === 6 ? 14 : d15 === 0 ? 16 : 15;
-  if (now.getDate() <= payDay) {
-    return m === 1 ? { year: y - 1, month: 12 } : { year: y, month: m - 1 };
+  if (d.date() <= payDay) {
+    const prev = d.subtract(1, "month"); // 跨年自动回退 12 月
+    return { year: prev.year(), month: prev.month() + 1 };
   }
-  return { year: y, month: m };
+  return { year: d.year(), month: d.month() + 1 };
 }
 
 /**
@@ -86,7 +86,7 @@ export function getWorkDaysInMonth(
   }
 
   for (const hd of holidayDateSet) {
-    const dow = new Date(year, month - 1, hd).getDay();
+    const dow = start.date(hd).day();
     const isC = dow === rest;
     const isB = (dow + 1) % 7 === rest;
 
