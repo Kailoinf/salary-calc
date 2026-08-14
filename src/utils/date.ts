@@ -38,6 +38,21 @@ function dayShift(
 }
 
 /**
+ * 应显示薪资的月份：15 号发薪，逢周六提前到 14 号、逢周日推迟到 16 号；
+ * 发薪日当天及之前显示上月（发的是上月工资），发薪日次日起显示当月。
+ */
+export function getPayrollMonth(now: Date): { year: number; month: number } {
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1;
+  const d15 = new Date(y, m - 1, 15).getDay();
+  const payDay = d15 === 6 ? 14 : d15 === 0 ? 16 : 15;
+  if (now.getDate() <= payDay) {
+    return m === 1 ? { year: y - 1, month: 12 } : { year: y, month: m - 1 };
+  }
+  return { year: y, month: m };
+}
+
+/**
  * 核心函数：遍历当月每一天，按班型分类统计出勤。
  * 班次切换规则：当月第一个休息日之前的出勤日沿用 prevShiftType，
  * 之后使用 currShiftType（含 F 班节假日）。
