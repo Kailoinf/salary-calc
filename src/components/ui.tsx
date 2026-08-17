@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from "react";
+import dayjs from "dayjs";
 import type { UserSettings } from "../utils/settings";
 import { fmt, WEEKDAY_NAMES, yuanToCents } from "../utils/format";
 
@@ -320,7 +321,7 @@ export function exportSalaryImage(params: {
     if (!b) return;
     const a = document.createElement("a");
     a.href = URL.createObjectURL(b);
-    a.download = `薪资_${new Date().toISOString().slice(0, 10)}.png`;
+    a.download = `薪资_${dayjs().format("YYYY-MM-DD")}.png`;
     a.click();
     URL.revokeObjectURL(a.href);
   }, "image/png");

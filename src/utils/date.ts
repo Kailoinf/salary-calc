@@ -43,7 +43,7 @@ function dayShift(
  */
 export function getPayrollMonth(now: Date): { year: number; month: number } {
   const d = dayjs(now);
-  const d15 = dayjs(new Date(d.year(), d.month(), 15)).day();
+  const d15 = d.date(15).day();
   const payDay = d15 === 6 ? 14 : d15 === 0 ? 16 : 15;
   if (d.date() <= payDay) {
     const prev = d.subtract(1, "month"); // 跨年自动回退 12 月
