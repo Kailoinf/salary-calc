@@ -327,18 +327,13 @@ export function exportSalaryImage(params: {
   }, "image/png");
 }
 
-/** 卡片右上角小按钮（设置/导出），active 时高亮为当前选中态 */
-export function SmallBtn({ onClick, children, active = false }: { onClick: () => void; children: ReactNode; active?: boolean }) {
+/** 卡片右上角小按钮（设置/导出） */
+export function SmallBtn({ onClick, children }: { onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={
-        "text-xs px-2 py-1 rounded-md border transition-colors " +
-        (active
-          ? "border-sky-500 dark:border-sky-400 text-sky-600 dark:text-sky-400"
-          : "border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-black")
-      }
+      className="text-xs px-2 py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-black transition-colors"
     >
       {children}
     </button>

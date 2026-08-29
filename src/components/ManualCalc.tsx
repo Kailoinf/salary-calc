@@ -104,9 +104,20 @@ export function ManualCalc({
               const [y, m] = v.split("-").map(Number);
               if (y && m) setOverrideMonth({ year: y, month: m });
             }}
-            className={INPUT}
+            className={INPUT + " w-28 sm:w-32"}
           />
-          <SmallBtn active={!overrideMonth} onClick={() => setOverrideMonth(null)}>自动</SmallBtn>
+          <button
+            type="button"
+            onClick={() => setOverrideMonth(null)}
+            className={
+              "px-4 py-2 rounded-lg text-sm font-medium border transition-colors " +
+              (overrideMonth
+                ? "border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-black text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-black"
+                : "border-sky-600 dark:border-sky-400 bg-sky-50 dark:bg-black text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-black")
+            }
+          >
+            自动
+          </button>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {hourFields.map((f, i) => {
