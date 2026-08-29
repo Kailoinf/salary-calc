@@ -21,13 +21,17 @@ export function ManualCalc({
   const [fhours, setFhours] = useState("0");
   const [nights, setNights] = useState("0");
   const [adjustment, setAdjustment] = useState("0");
+  const [overrideMonth, setOverrideMonth] = useState<{ year: number; month: number } | null>(null);
   const touched = useRef(new Set<string>());
 
-  // 根据当月排班自动填充工时；休息日设置变化时重新填充，夜班固定0天
+  // 核算月份：默认按发放日规则自动推导（getPayrollMonth），overrideMonth 后手动指定
+  const autoMonth = useMemo(() => getPayrollMonth(new Date()), []);
+  const ym = overrideMonth ?? autoMonth;
+
+  // 根据核算月份排班自动填充工时；休息日设置变化时重新填充，夜班固定0天
   useEffect(() => {
-    const { year: y, month: m } = getPayrollMonth(new Date());
     const stats = getWorkDaysInMonth(
-      y, m,
+      ym.year, ym.month,
       settings.restDayWeekday,
       "night", "day",
     );
@@ -35,7 +39,7 @@ export function ManualCalc({
     setBhours(String(stats.bDayCount * 11));
     setFhours(String(stats.fDayCount * 11));
     // ponytail: 夜班固定0，不根据当月排班计算
-  }, [settings.restDayWeekday]);
+  }, [settings.restDayWeekday, ym.year, ym.month]);
 
   const r = useMemo(() => {
     const hr = calcBaseHourlyRate(settings.baseSalary);
@@ -89,6 +93,25 @@ export function ManualCalc({
           <SmallBtn onClick={onOpenSettings}>设置</SmallBtn>
         }
       >
+        <div className="flex items-center gap-2">
+          <span className="shrink-0 text-sm text-slate-600 dark:text-slate-400">核算月份</span>
+          <input
+            type="month"
+            value={`${ym.year}-${String(ym.month).padStart(2, "0")}`}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (!v) return;
+              const [y, m] = v.split("-").map(Number);
+              if (y && m) setOverrideMonth({ year: y, month: m });
+            }}
+            className={INPUT}
+          />
+          {overrideMonth ? (
+            <SmallBtn onClick={() => setOverrideMonth(null)}>回到自动</SmallBtn>
+          ) : (
+            <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">自动</span>
+          )}
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {hourFields.map((f, i) => {
             const key = String(i);
