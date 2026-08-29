@@ -106,11 +106,7 @@ export function ManualCalc({
             }}
             className={INPUT}
           />
-          {overrideMonth ? (
-            <SmallBtn onClick={() => setOverrideMonth(null)}>回到自动</SmallBtn>
-          ) : (
-            <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">自动</span>
-          )}
+          <SmallBtn active={!overrideMonth} onClick={() => setOverrideMonth(null)}>自动</SmallBtn>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {hourFields.map((f, i) => {
