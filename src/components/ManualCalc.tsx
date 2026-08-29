@@ -104,7 +104,7 @@ export function ManualCalc({
               const [y, m] = v.split("-").map(Number);
               if (y && m) setOverrideMonth({ year: y, month: m });
             }}
-            className={INPUT + " w-28 sm:w-32"}
+            className={INPUT.replace("w-full", "") + " w-28 sm:w-32"}
           />
           <button
             type="button"
