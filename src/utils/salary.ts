@@ -26,9 +26,15 @@ export function calcBaseHourlyRate(baseSalary: number): number {
 /**
  * 个税：计税基数 = 税前工资 - 起征点 - 社保（均为分）；
  * 计税基数 ≤ 0 时免征，否则 × 税率，结果取整为分。
+ * threshold/rate 可显式传入（分享页用分享者内嵌参数）；缺省读模块态（主页面用）。
  */
-export function calcTax(grossPay: number, socialTotal: number): number {
-  const taxable = grossPay - TAX_THRESHOLD - socialTotal;
+export function calcTax(
+  grossPay: number,
+  socialTotal: number,
+  threshold = TAX_THRESHOLD,
+  rate = TAX_RATE,
+): number {
+  const taxable = grossPay - threshold - socialTotal;
   if (taxable <= 0) return 0;
-  return Math.round(taxable * TAX_RATE);
+  return Math.round(taxable * rate);
 }

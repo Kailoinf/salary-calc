@@ -27,7 +27,7 @@ export function ShareView({ data }: { data: ShareData }) {
     const nightPay = Math.round(nd * 2000);
     const grossPay = Math.round(fixedTotal + otPay + bPay + cPay + fPay + nightPay);
     const social = settings.noSocial ? 0 : SOCIAL_INSURANCE;
-    const tax = settings.noTax ? 0 : calcTax(grossPay, social);
+    const tax = settings.noTax ? 0 : calcTax(grossPay, social, settings.taxThreshold, settings.taxRate);
     const netPay = Math.round(grossPay - social - tax);
     return { ot, bh, ch, fh, nd, otPay, bPay, cPay, fPay, nightPay, grossPay, social, tax, netPay };
   }, [settings, data]);
