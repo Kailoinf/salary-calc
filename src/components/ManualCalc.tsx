@@ -37,27 +37,29 @@ export function ManualCalc({
   const autoMonth = useMemo(() => getPayrollMonth(new Date()), []);
   const ym = overrideMonth ?? autoMonth;
 
-  // 根据核算月份排班自动填充工时；休息日设置变化时重新填充，夜班固定0天
+  // 排班统计：月份/休息日变化时重算
+  const stats = useMemo(
+    () => getWorkDaysInMonth(ym.year, ym.month, settings.restDayWeekday, "night", "day"),
+    [ym.year, ym.month, settings.restDayWeekday],
+  );
+
+  // 自动填充 A/B/F 工时；夜班固定0
   useEffect(() => {
-    const stats = getWorkDaysInMonth(
-      ym.year, ym.month,
-      settings.restDayWeekday,
-      "night", "day",
-    );
     setOvertime(String(stats.aDayCount * 3));
     setBhours(String(stats.bDayCount * 11));
     setFhours(String(stats.fDayCount * 11));
-    // 14休1：C班隔一个上一个（第一个C班上班），上班次数 = ceil(C班数/2)
-    // ponytail: 开启=自动填；关闭=保留用户手动值（残留值是用户手动填的加班，不清0）
-    if (settings.cEveryOther)
-      setChours(String(Math.ceil(stats.cDayCount / 2) * 11));
-  }, [settings.restDayWeekday, settings.cEveryOther, ym.year, ym.month]);
+    // ponytail: 夜班固定0
+  }, [stats]);
+
+  // 14休1 自动 C班工时：开启=隔一个上一个(第一个上)，关闭=0(自动清零)。
+  // 该值独立于下方 C班小时框(手动)，二者相加才进 C班——关闭开关只消自动部分，手动加班保留。
+  const autoC = settings.cEveryOther ? Math.ceil(stats.cDayCount / 2) * 11 : 0;
 
   const r = useMemo(() => {
     const hr = calcBaseHourlyRate(settings.baseSalary);
     const ot = Math.max(0, num(overtime, 0));
     const bh = Math.max(0, num(bhours, 0));
-    const ch = Math.max(0, num(chours, 0));
+    const ch = Math.max(0, num(chours, 0)) + autoC; // 手动加班 + 14休1自动
     const fh = Math.max(0, num(fhours, 0));
     const nd = Math.max(0, num(nights, 0));
     const fixedTotal =
@@ -76,7 +78,7 @@ export function ManualCalc({
     const tax = settings.noTax ? 0 : calcTax(grossPay, social);
     const netPay = Math.round(grossPay - social - tax);
     return { ot, bh, ch, fh, nd, fixedTotal, otPay, bPay, cPay, fPay, nightPay, grossPay, social, tax, netPay };
-  }, [settings, overtime, bhours, chours, fhours, nights, adjustment]);
+  }, [settings, overtime, bhours, chours, fhours, nights, adjustment, autoC]);
 
   const hourFields: HourField[] = [
     { label: "加班小时(A班×1.5)", step: "0.5", min: 0, value: overtime, set: setOvertime },
