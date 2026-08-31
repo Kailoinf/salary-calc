@@ -88,7 +88,14 @@ export function decodeShare(encoded: string): ShareData | null {
     const flags = v.getUint8(o++);
     const taxThreshold = v.getUint16(o) * 100; o += 2;
     const taxRate = v.getUint8(o++) / 100;
-    if (![year, month, overtime, bhours, chours, fhours, nights, adjustment, restDayWeekday, taxRate].every((n) => Number.isFinite(n))) return null;
+    // 范围校验：非法/越界值返回 null（防止损坏/伪造数据传递出荒谬工资）
+    const validYear = year >= 2000 && year <= 2099;
+    const validMonth = month >= 1 && month <= 12;
+    const validHours = [overtime, bhours, chours, fhours].every((n) => n >= 0 && n <= 900);
+    const validNights = nights >= 0 && nights <= 31;
+    const validRest = restDayWeekday >= 0 && restDayWeekday <= 6;
+    const validTaxRate = taxRate >= 0 && taxRate <= 1;
+    if (![validYear, validMonth, validHours, validNights, validRest, validTaxRate].every(Boolean)) return null;
     return {
       year,
       month,
