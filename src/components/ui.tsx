@@ -291,7 +291,7 @@ export function exportSalaryImage(params: {
     if (kind === "income") ctx.fillStyle = "#059669";
     else if (kind === "deduction") ctx.fillStyle = "#e11d48";
     else ctx.fillStyle = "#0f172a";
-    ctx.fillText(amount, w - pad, y);
+    ctx.fillText(kind === "deduction" ? "-" + amount : amount, w - pad, y);
   };
 
   // alternating bg for rows
@@ -328,10 +328,10 @@ export function exportSalaryImage(params: {
     if (!b) return;
     const a = document.createElement("a");
     a.href = URL.createObjectURL(b);
-    a.download = `薪资_${dayjs().format("YYYY-MM-DD")}.png`;
+    a.download = `薪资_${dayjs().format("YYYY-MM-DD")}.jpg`;
     a.click();
     URL.revokeObjectURL(a.href);
-  }, "image/png");
+  }, "image/jpeg", 0.92);
 }
 
 /** 卡片右上角小按钮（设置/导出） */

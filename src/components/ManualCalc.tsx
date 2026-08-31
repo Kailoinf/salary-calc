@@ -157,7 +157,7 @@ export function ManualCalc({
       </Card>
 
       <Card title="计算结果" action={<SmallBtn onClick={() => exportSalaryImage({
-        title: "手动算薪",
+        title: `手动算薪 ${ym.year}-${String(ym.month).padStart(2, "0")}`,
         rows,
         netPay: r.netPay,
       })}>导出</SmallBtn>}>
