@@ -290,18 +290,21 @@ export function exportSalaryImage(params: {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, w, h);
 
-  // 顶部色带横幅（cn-np 底栏 5 种品牌纯色：主蓝 + 4 色带，无渐变）
+  // 顶部色带横幅：主蓝 #0028AA 拉长(占多数)，后 4 块等分(每块相等宽度)，无渐变
   const bannerColors = ["#0028AA", "#015286", "#027B62", "#03A53D", "#04CE19"];
-  const segW = w / bannerColors.length;
-  bannerColors.forEach((col, i) => {
-    ctx.fillStyle = col;
-    ctx.fillRect(i * segW, 0, segW, bannerH);
-  });
+  const mainSeg = w * 0.55; // 主色块拉长
+  const restSeg = (w - mainSeg) / (bannerColors.length - 1); // 后4块等分
+  ctx.fillStyle = bannerColors[0];
+  ctx.fillRect(0, 0, mainSeg, bannerH);
+  for (let i = 1; i < bannerColors.length; i++) {
+    ctx.fillStyle = bannerColors[i];
+    ctx.fillRect(mainSeg + (i - 1) * restSeg, 0, restSeg, bannerH);
+  }
   ctx.fillStyle = "#ffffff";
   ctx.font = `bold ${18 * scale}px ${fontFam}`;
-  ctx.textAlign = "center";
+  ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  ctx.fillText(title, w / 2, bannerH / 2);
+  ctx.fillText(title, 24 * scale, bannerH / 2);
 
   let y = bannerH + 22 * scale;
   ctx.textBaseline = "middle";
@@ -348,12 +351,32 @@ export function exportSalaryImage(params: {
   ctx.font = `bold ${18 * scale}px ${fontFam}`;
   ctx.fillText(fmt(netPay), w - pad, midY);
 
-  // 免责声明（小字、低调但清晰）
+  // 免责声明（精简版，小字、低调但清晰）
   const disY = y + netH + disclaimH / 2;
   ctx.fillStyle = "#64748b";
   ctx.font = `${10 * scale}px ${fontFam}`;
   ctx.textAlign = "center";
-  ctx.fillText("注：以上数据由用户手动录入，计算结果仅供参考，实际工资以发放为准。", w / 2, disY);
+  ctx.fillText("以上数据由用户录入，结果仅供参考，实发以工资条为准。", w / 2, disY);
+
+  // 导出时间水印：淡色、小字、斜排平铺
+  const ts = dayjs().format("YYYY-MM-DD HH:mm");
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  ctx.rotate((-22 * Math.PI) / 180);
+  ctx.fillStyle = "rgba(100, 116, 139, 0.18)";
+  ctx.font = `${11 * scale}px ${fontFam}`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const stepX = 260 * scale;
+  const stepY = 120 * scale;
+  for (let row = 0; row < Math.ceil(h / stepY) + 2; row++) {
+    for (let col = 0; col < Math.ceil(w / stepX) + 2; col++) {
+      const x = (col - Math.floor((w / stepX) / 2) - 1) * stepX;
+      const y2 = (row - Math.floor((h / stepY) / 2)) * stepY;
+      ctx.fillText(ts, x, y2);
+    }
+  }
+  ctx.restore();
 
   canvas.toBlob((b) => {
     if (!b) return;
