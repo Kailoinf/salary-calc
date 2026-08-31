@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { calcBaseHourlyRate, calcTax, SOCIAL_INSURANCE } from "../utils/salary";
 import { num, yuanToCents } from "../utils/format";
-import { Card, MoneyTable, NetPay, type Row } from "./ui";
+import { Card, MoneyTable, NetPay, SmallBtn, type Row } from "./ui";
 import type { ShareData } from "../utils/share";
 
 /** 分享查看页：扫二维码打开 ?d= 后只读展示这份工资单，不出编辑态 */
@@ -49,20 +49,20 @@ export function ShareView({ data }: { data: ShareData }) {
 
   return (
     <div className="space-y-4">
-      <Card title={`工资单 ${data.year}-${String(data.month).padStart(2, "0")}`}>
+      <Card
+        title={`工资单 ${data.year}-${String(data.month).padStart(2, "0")}`}
+        action={
+          <SmallBtn onClick={() => { window.location.href = window.location.origin + window.location.pathname; }}>
+            我要计算
+          </SmallBtn>
+        }
+      >
         <p className="text-sm text-slate-500 dark:text-slate-400">
           本条工资单由分享链接生成，仅供参考。
         </p>
         <MoneyTable rows={rows} />
         <NetPay amount={r.netPay} />
       </Card>
-      <button
-        type="button"
-        onClick={() => { window.location.href = window.location.origin + window.location.pathname; }}
-        className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-black text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-200 dark:hover:bg-black transition-colors"
-      >
-        我要计算
-      </button>
     </div>
   );
 }
