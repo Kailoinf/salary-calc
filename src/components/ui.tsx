@@ -362,7 +362,7 @@ export async function exportSalaryImage(params: {
   ctx.textAlign = "center";
   ctx.fillText("以上数据由用户录入，结果仅供参考。", w / 2, disY);
 
-  // 底部「软件链接 + 邮箱 + 二维码」区
+  // 底部「软件链接 + 邮箱 + 二维码」区：左=链接+邮箱，右=小标题「扫码计算薪资」+ 上方二维码
   if (shareUrl) {
     const fy = y + netH + disclaimH; // footer 区顶
     ctx.strokeStyle = "#e2e8f0";
@@ -371,25 +371,28 @@ export async function exportSalaryImage(params: {
     ctx.moveTo(pad, fy);
     ctx.lineTo(w - pad, fy);
     ctx.stroke();
-    const qSize = 90 * scale;
+    const qSize = 70 * scale; // 二维码调小
     const qx = w - pad - qSize;
-    const qy = fy + (footerH - qSize) / 2;
-    // 二维码块：先用白底占位，实际码异步画入
+    const labelH = 22 * scale; // 标题「扫码计算薪资」占高
+    const qy = fy + 16 * scale + labelH; // 标题下方再放二维码
+    // 右侧：标题在二维码上方
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#334155";
+    ctx.font = `bold ${13 * scale}px ${fontFam}`;
+    ctx.fillText("扫码计算薪资", qx, fy + 16 * scale + labelH / 2);
+    // 二维码块：先白底占位，实际码异步画入
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(qx, qy, qSize, qSize);
     ctx.strokeStyle = "#e2e8f0";
     ctx.strokeRect(qx, qy, qSize, qSize);
-    // 左侧：软件链接 + 邮箱
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#334155";
-    ctx.font = `bold ${14 * scale}px ${fontFam}`;
-    ctx.fillText("扫码计算薪资", pad, qy + 24 * scale);
+    // 左侧：软件链接 + 邮箱（垂直居中）
+    const midY = fy + footerH / 2 - 4 * scale;
     ctx.fillStyle = "#0284c7";
     ctx.font = `${13 * scale}px ${fontFam}`;
-    ctx.fillText("https://salary.gkux.cn", pad, qy + 52 * scale);
+    ctx.fillText("https://salary.gkux.cn", pad, midY - 18 * scale);
     ctx.fillStyle = "#64748b";
     ctx.font = `${12 * scale}px ${fontFam}`;
-    ctx.fillText("gaoxuejun@wuit.edu.cn", pad, qy + 76 * scale);
+    ctx.fillText("gaoxuejun@wuit.edu.cn", pad, midY + 18 * scale);
     // 保持引用避免 ts unused（实际二维码在下方 await 后画入）
   }
 
@@ -418,10 +421,11 @@ export async function exportSalaryImage(params: {
 
   // 异步画二维码到占位块（shareUrl 存在时）
   if (shareUrl) {
-    const qSize = 90 * scale;
+    const qSize = 70 * scale;
     const fy = y + netH + disclaimH;
+    const labelH = 22 * scale;
     const qx = w - pad - qSize;
-    const qy = fy + (footerH - qSize) / 2;
+    const qy = fy + 16 * scale + labelH;
     const qCanvas = document.createElement("canvas");
     qCanvas.width = qSize;
     qCanvas.height = qSize;
