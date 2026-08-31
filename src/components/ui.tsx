@@ -357,7 +357,7 @@ export function exportSalaryImage(params: {
   ctx.fillStyle = "#64748b";
   ctx.font = `${10 * scale}px ${fontFam}`;
   ctx.textAlign = "center";
-  ctx.fillText("以上数据由用户录入，结果仅供参考，实发以工资条为准。", w / 2, disY);
+  ctx.fillText("以上数据由用户录入，结果仅供参考。", w / 2, disY);
 
   // 导出水印：设备信息 + 导出时间，淡色小字斜排平铺
   const ua = new UAParser(navigator.userAgent).getResult();
