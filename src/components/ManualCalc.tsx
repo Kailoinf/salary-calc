@@ -170,7 +170,7 @@ export function ManualCalc({
           settings,
         });
         exportSalaryImage({
-          title: `手动算薪 ${ym.year}-${String(ym.month).padStart(2, "0")}`,
+          title: `参考薪资 ${ym.year}-${String(ym.month).padStart(2, "0")}`,
           rows,
           netPay: r.netPay,
           shareUrl: `https://salary.gkux.cn/?d=${d}`,

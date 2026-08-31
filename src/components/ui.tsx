@@ -389,7 +389,7 @@ export async function exportSalaryImage(params: {
     ctx.fillText("https://salary.gkux.cn", pad, qy + 52 * scale);
     ctx.fillStyle = "#64748b";
     ctx.font = `${12 * scale}px ${fontFam}`;
-    ctx.fillText("联系邮箱：gaoxuejun@wuit.edu.cn", pad, qy + 76 * scale);
+    ctx.fillText("gaoxuejun@wuit.edu.cn", pad, qy + 76 * scale);
     // 保持引用避免 ts unused（实际二维码在下方 await 后画入）
   }
 
