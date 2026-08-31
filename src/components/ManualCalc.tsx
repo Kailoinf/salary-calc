@@ -9,6 +9,14 @@ import {
 import { num, yuanToCents } from "../utils/format";
 import { Card, Field, INPUT, MoneyTable, NetPay, SmallBtn, exportSalaryImage, type Row } from "./ui";
 
+type HourField = {
+  label: string;
+  step: string;
+  min?: number;
+  value: string;
+  set: (v: string) => void;
+};
+
 export function ManualCalc({
   settings,
   onOpenSettings,
@@ -18,6 +26,7 @@ export function ManualCalc({
 }) {
   const [overtime, setOvertime] = useState("72");
   const [bhours, setBhours] = useState("44");
+  const [chours, setChours] = useState("0");
   const [fhours, setFhours] = useState("0");
   const [nights, setNights] = useState("0");
   const [adjustment, setAdjustment] = useState("0");
@@ -28,7 +37,7 @@ export function ManualCalc({
   const autoMonth = useMemo(() => getPayrollMonth(new Date()), []);
   const ym = overrideMonth ?? autoMonth;
 
-  // 根据核算月份排班自动填充工时；休息日设置变化时重新填充，夜班固定0天
+  // 根据核算月份排班自动填充工时；休息日设置变化时重新填充，夜班固定0天，C班手动
   useEffect(() => {
     const stats = getWorkDaysInMonth(
       ym.year, ym.month,
@@ -38,13 +47,14 @@ export function ManualCalc({
     setOvertime(String(stats.aDayCount * 3));
     setBhours(String(stats.bDayCount * 11));
     setFhours(String(stats.fDayCount * 11));
-    // ponytail: 夜班固定0，不根据当月排班计算
+    // ponytail: 夜班固定0，C班手动填，不根据当月排班计算
   }, [settings.restDayWeekday, ym.year, ym.month]);
 
   const r = useMemo(() => {
     const hr = calcBaseHourlyRate(settings.baseSalary);
     const ot = Math.max(0, num(overtime, 0));
     const bh = Math.max(0, num(bhours, 0));
+    const ch = Math.max(0, num(chours, 0));
     const fh = Math.max(0, num(fhours, 0));
     const nd = Math.max(0, num(nights, 0));
     const fixedTotal =
@@ -55,20 +65,23 @@ export function ManualCalc({
       yuanToCents(num(adjustment, 0));
     const otPay = Math.round(ot * 1.5 * hr);
     const bPay = Math.round(bh * 2 * hr);
+    const cPay = Math.round(ch * 2 * hr);
     const fPay = Math.round(fh * 3 * hr);
     const nightPay = Math.round(nd * 2000);
-    const grossPay = Math.round(fixedTotal + otPay + bPay + fPay + nightPay);
+    const grossPay = Math.round(fixedTotal + otPay + bPay + cPay + fPay + nightPay);
     const social = settings.noSocial ? 0 : SOCIAL_INSURANCE;
     const tax = settings.noTax ? 0 : calcTax(grossPay, social);
     const netPay = Math.round(grossPay - social - tax);
-    return { ot, bh, fh, nd, fixedTotal, otPay, bPay, fPay, nightPay, grossPay, social, tax, netPay };
-  }, [settings, overtime, bhours, fhours, nights, adjustment]);
+    return { ot, bh, ch, fh, nd, fixedTotal, otPay, bPay, cPay, fPay, nightPay, grossPay, social, tax, netPay };
+  }, [settings, overtime, bhours, chours, fhours, nights, adjustment]);
 
-  const hourFields = [
-    { label: "加班小时(A班×1.5)", step: "0.5", value: overtime, set: setOvertime },
-    { label: "B班小时(×2)", step: "0.5", value: bhours, set: setBhours },
-    { label: "F班小时(×3)", step: "0.5", value: fhours, set: setFhours },
-    { label: "夜班天数", step: "1", value: nights, set: setNights },
+  const hourFields: HourField[] = [
+    { label: "加班小时(A班×1.5)", step: "0.5", min: 0, value: overtime, set: setOvertime },
+    { label: "B班小时(×2)", step: "0.5", min: 0, value: bhours, set: setBhours },
+    { label: "C班小时(×2)", step: "0.5", min: 0, value: chours, set: setChours },
+    { label: "F班小时(×3)", step: "0.5", min: 0, value: fhours, set: setFhours },
+    { label: "夜班天数", step: "1", min: 0, value: nights, set: setNights },
+    { label: "奖励与惩罚", step: "10", value: adjustment, set: setAdjustment },
   ];
 
   const rows: Row[] = [
@@ -78,6 +91,7 @@ export function ManualCalc({
     { label: "绩效工资", amount: settings.performanceSalary },
     { label: `A班加班(${r.ot}h×1.5)`, amount: r.otPay, kind: "income" },
     { label: `B班(${r.bh}h×2)`, amount: r.bPay, kind: "income" },
+    { label: `C班(${r.ch}h×2)`, amount: r.cPay, kind: "income" },
     { label: `F班(${r.fh}h×3)`, amount: r.fPay, kind: "income" },
     { label: `夜班补贴(${r.nd}天)`, amount: r.nightPay, kind: "income" },
     { label: "税前总工资", amount: r.grossPay, kind: "total" },
@@ -104,7 +118,7 @@ export function ManualCalc({
               const [y, m] = v.split("-").map(Number);
               if (y && m) setOverrideMonth({ year: y, month: m });
             }}
-            className={INPUT.replace("w-full", "") + " w-28 sm:w-32"}
+            className={INPUT.replace("w-full", "") + " flex-1 min-w-0"}
           />
           <button
             type="button"
@@ -121,7 +135,7 @@ export function ManualCalc({
               <Field key={f.label} label={f.label}>
                 <input
                   type="number"
-                  min={0}
+                  min={f.min}
                   step={f.step}
                   value={f.value}
                   onChange={(e) => { f.set(e.target.value); touched.current.add(key); }}
@@ -135,19 +149,6 @@ export function ManualCalc({
             );
           })}
         </div>
-        <Field label="奖励与惩罚">
-          <input
-            type="number"
-            step="10"
-            value={adjustment}
-            onChange={(e) => { setAdjustment(e.target.value); touched.current.add("adj"); }}
-            onBlur={(e) => {
-              if (touched.current.has("adj") && (e.target as HTMLInputElement).value === "") setAdjustment("0");
-            }}
-            onFocus={() => touched.current.add("adj")}
-            className={INPUT}
-          />
-        </Field>
       </Card>
 
       <Card title="计算结果" action={<SmallBtn onClick={() => exportSalaryImage({
