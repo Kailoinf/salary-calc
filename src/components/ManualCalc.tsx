@@ -48,12 +48,9 @@ export function ManualCalc({
     setBhours(String(stats.bDayCount * 11));
     setFhours(String(stats.fDayCount * 11));
     // 14休1：C班隔一个上一个（第一个C班上班），上班次数 = ceil(C班数/2)
-    // ponytail: 开启=自动填，关闭=归默认0，避免关开关残留自动工时
-    setChours(
-      settings.cEveryOther
-        ? String(Math.ceil(stats.cDayCount / 2) * 11)
-        : "0",
-    );
+    // ponytail: 开启=自动填；关闭=保留用户手动值（残留值是用户手动填的加班，不清0）
+    if (settings.cEveryOther)
+      setChours(String(Math.ceil(stats.cDayCount / 2) * 11));
   }, [settings.restDayWeekday, settings.cEveryOther, ym.year, ym.month]);
 
   const r = useMemo(() => {
