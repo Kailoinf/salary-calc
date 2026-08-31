@@ -37,7 +37,7 @@ export function ManualCalc({
   const autoMonth = useMemo(() => getPayrollMonth(new Date()), []);
   const ym = overrideMonth ?? autoMonth;
 
-  // 根据核算月份排班自动填充工时；休息日设置变化时重新填充，夜班固定0天，C班手动
+  // 根据核算月份排班自动填充工时；休息日设置变化时重新填充，夜班固定0天
   useEffect(() => {
     const stats = getWorkDaysInMonth(
       ym.year, ym.month,
@@ -47,8 +47,10 @@ export function ManualCalc({
     setOvertime(String(stats.aDayCount * 3));
     setBhours(String(stats.bDayCount * 11));
     setFhours(String(stats.fDayCount * 11));
-    // ponytail: 夜班固定0，C班手动填，不根据当月排班计算
-  }, [settings.restDayWeekday, ym.year, ym.month]);
+    // 14休1：C班隔一个上一个（第一个C班上班），上班次数 = ceil(C班数/2)
+    if (settings.cEveryOther) setChours(String(Math.ceil(stats.cDayCount / 2) * 11));
+    // ponytail: 夜班固定0；未开14休1时C班手动填，不自动覆盖
+  }, [settings.restDayWeekday, settings.cEveryOther, ym.year, ym.month]);
 
   const r = useMemo(() => {
     const hr = calcBaseHourlyRate(settings.baseSalary);

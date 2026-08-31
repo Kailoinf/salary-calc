@@ -11,6 +11,7 @@ export interface UserSettings {
   adjustment: number; // 奖励/惩罚，分，默认 0 元 = 0，可负
   noSocial: boolean; // 不交社保
   noTax: boolean; // 不交个税
+  cEveryOther: boolean; // 14休1：C班隔一个上一个（第一个C班上班），默认 false
   taxThreshold: number; // 个税起征点，分，默认 5000 元 = 500000
   taxRate: number; // 个税税率，默认 0.03
 }
@@ -24,6 +25,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   adjustment: 0,
   noSocial: false,
   noTax: false,
+  cEveryOther: false,
   taxThreshold: 500000,
   taxRate: 0.03,
 };
@@ -40,7 +42,7 @@ export function loadSettings(): UserSettings {
     (Object.keys(s) as (keyof UserSettings)[]).forEach((k) => {
       const v = parsed[k];
       const target = s as Record<string, unknown>;
-      if (k === "noSocial" || k === "noTax") {
+      if (k === "noSocial" || k === "noTax" || k === "cEveryOther") {
         if (typeof v === "boolean") target[k] = v;
       } else if (typeof v === "number" && Number.isFinite(v)) {
         // 范围校验：损坏数据回落默认值（adjustment 允许负值=惩罚）

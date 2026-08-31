@@ -163,22 +163,27 @@ function Toggle({
   );
 }
 
-/** 不交社保 / 不交个税 开关 */
+/** 不交社保 / 不交个税 / 14休1 开关 */
 export function DeductionToggles({
   noSocial,
   noTax,
+  cEveryOther,
   onSocial,
   onTax,
+  onEveryOther,
 }: {
   noSocial: boolean;
   noTax: boolean;
+  cEveryOther: boolean;
   onSocial: (b: boolean) => void;
   onTax: (b: boolean) => void;
+  onEveryOther: (b: boolean) => void;
 }) {
   return (
     <div className="flex gap-4">
       <Toggle label="不交社保" checked={noSocial} onChange={onSocial} />
       <Toggle label="不交个税" checked={noTax} onChange={onTax} />
+      <Toggle label="14休1" checked={cEveryOther} onChange={onEveryOther} />
     </div>
   );
 }
@@ -224,8 +229,10 @@ export function GlobalSettingsFields({
       <DeductionToggles
         noSocial={settings.noSocial}
         noTax={settings.noTax}
+        cEveryOther={settings.cEveryOther}
         onSocial={(b) => onSettings({ ...settings, noSocial: b })}
         onTax={(b) => onSettings({ ...settings, noTax: b })}
+        onEveryOther={(b) => onSettings({ ...settings, cEveryOther: b })}
       />
     </>
   );

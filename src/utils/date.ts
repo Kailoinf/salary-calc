@@ -68,6 +68,7 @@ export function getWorkDaysInMonth(
   aDayCount: number;
   bDayCount: number;
   fDayCount: number;
+  cDayCount: number;
   nightShiftDays: number;
 } {
   const start = dayjs(new Date(year, month - 1, 1));
@@ -110,6 +111,7 @@ export function getWorkDaysInMonth(
   let aDayCount = 0;
   let bDayCount = 0;
   let fDayCount = 0;
+  let cDayCount = 0;
   let nightShiftDays = 0;
 
   for (let i = 0; i < daysInMonth; i++) {
@@ -128,7 +130,10 @@ export function getWorkDaysInMonth(
     // 2) C 班（休息日，不出勤）
     const isStdC = d.day() === rest;
     const isShiftedC = shiftedCDates.has(dom);
-    if ((isStdC || isShiftedC) && !shiftedBDates.has(dom)) continue;
+    if ((isStdC || isShiftedC) && !shiftedBDates.has(dom)) {
+      cDayCount++;
+      continue;
+    }
 
     // 3) 出勤日
     totalDays++;
@@ -149,6 +154,7 @@ export function getWorkDaysInMonth(
     aDayCount,
     bDayCount,
     fDayCount,
+    cDayCount,
     nightShiftDays,
   };
 }
