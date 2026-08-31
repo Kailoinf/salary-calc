@@ -290,17 +290,18 @@ export function exportSalaryImage(params: {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, w, h);
 
-  // 顶部渐变横幅
-  const grad = ctx.createLinearGradient(0, 0, w, bannerH);
-  grad.addColorStop(0, "#1e40af");
-  grad.addColorStop(1, "#3b82f6");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, bannerH);
+  // 顶部色带横幅（cn-np 底栏 5 种品牌纯色：主蓝 + 4 色带，无渐变）
+  const bannerColors = ["#0028AA", "#015286", "#027B62", "#03A53D", "#04CE19"];
+  const segW = w / bannerColors.length;
+  bannerColors.forEach((col, i) => {
+    ctx.fillStyle = col;
+    ctx.fillRect(i * segW, 0, segW, bannerH);
+  });
   ctx.fillStyle = "#ffffff";
   ctx.font = `bold ${18 * scale}px ${fontFam}`;
-  ctx.textAlign = "left";
+  ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(title, pad, bannerH / 2);
+  ctx.fillText(title, w / 2, bannerH / 2);
 
   let y = bannerH + 22 * scale;
   ctx.textBaseline = "middle";
