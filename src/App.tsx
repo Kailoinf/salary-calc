@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { UserSettings } from "./utils/settings";
 import { loadSettings, saveSettings } from "./utils/settings";
 import { setCurrentSettings } from "./utils/salary";
 import { ManualCalc } from "./components/ManualCalc";
 import { Settings } from "./components/Settings";
 import { GlobalSettingsFields } from "./components/ui";
+import { ShareView } from "./components/ShareView";
+import { decodeShare } from "./utils/share";
 
 /**
  * 薪资构成 + 个税参数为全局共享状态：手动算薪 / 设置弹层 / 欢迎弹窗 三处双向同步，
@@ -24,6 +26,12 @@ export default function App() {
   );
   const [showSettings, setShowSettings] = useState(false);
 
+  // 分享模式：URL 带 ?d= 时只读展示（扫二维码打开），不弹欢迎、不出编辑
+  const share = useMemo(() => {
+    const d = new URLSearchParams(window.location.search).get("d");
+    return d ? decodeShare(d) : null;
+  }, []);
+
   const updateSettings = useCallback((s: UserSettings) => {
     setSettings(s);
     setCurrentSettings(s);
@@ -42,10 +50,14 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white dark:bg-black text-slate-800 dark:text-slate-100">
       <div className="mx-auto max-w-4xl px-4 py-6 space-y-5">
-        <ManualCalc
-          settings={settings}
-          onOpenSettings={() => setShowSettings(true)}
-        />
+        {share ? (
+          <ShareView data={share} />
+        ) : (
+          <ManualCalc
+            settings={settings}
+            onOpenSettings={() => setShowSettings(true)}
+          />
+        )}
 
         <footer className="text-center text-xs text-slate-300 dark:text-slate-600 pt-4 space-y-1">
           <a href="https://beian.miit.gov.cn" target="_blank" rel="noreferrer" className="block hover:text-slate-400">鄂ICP备2024069158号</a>
@@ -56,7 +68,7 @@ export default function App() {
         </footer>
       </div>
 
-      {showWelcome && (
+      {!share && showWelcome && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 p-4">
           <div className="flex min-h-full items-center justify-center">
             <div className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-xl max-w-md w-full space-y-3">

@@ -1,6 +1,7 @@
 import { type ReactNode, useState } from "react";
 import dayjs from "dayjs";
 import { UAParser } from "ua-parser-js";
+import QRCode from "qrcode";
 import type { UserSettings } from "../utils/settings";
 import { fmt, WEEKDAY_NAMES, yuanToCents } from "../utils/format";
 
@@ -240,12 +241,13 @@ export function GlobalSettingsFields({
 }
 
 /** 高分辨率图片导出：传入行数据 + 到手金额，下载为 PNG */
-export function exportSalaryImage(params: {
+export async function exportSalaryImage(params: {
   title: string;
   rows: Row[];
   netPay: number;
+  shareUrl?: string;
 }) {
-  const { title, rows, netPay } = params;
+  const { title, rows, netPay, shareUrl } = params;
   const scale = 5;
   const fontFam = '"Inter", "Noto Sans SC", system-ui, sans-serif';
   const pad = 32 * scale;
@@ -281,7 +283,8 @@ export function exportSalaryImage(params: {
   const sectionH = 36 * scale;
   const netH = 50 * scale;
   const disclaimH = 30 * scale;
-  const h = bannerH + 22 * scale + items.reduce((a, it) => a + (it.kind === "section" ? sectionH : rowH), 0) + 8 * scale + netH + disclaimH + 16 * scale;
+  const footerH = 130 * scale; // 底部「软件链接+邮箱+二维码」区
+  const h = bannerH + 22 * scale + items.reduce((a, it) => a + (it.kind === "section" ? sectionH : rowH), 0) + 8 * scale + netH + disclaimH + footerH + 16 * scale;
 
   const canvas = document.createElement("canvas");
   canvas.width = w;
@@ -359,6 +362,37 @@ export function exportSalaryImage(params: {
   ctx.textAlign = "center";
   ctx.fillText("以上数据由用户录入，结果仅供参考。", w / 2, disY);
 
+  // 底部「软件链接 + 邮箱 + 二维码」区
+  if (shareUrl) {
+    const fy = y + netH + disclaimH; // footer 区顶
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = Math.max(1, 1 * scale);
+    ctx.beginPath();
+    ctx.moveTo(pad, fy);
+    ctx.lineTo(w - pad, fy);
+    ctx.stroke();
+    const qSize = 90 * scale;
+    const qx = w - pad - qSize;
+    const qy = fy + (footerH - qSize) / 2;
+    // 二维码块：先用白底占位，实际码异步画入
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(qx, qy, qSize, qSize);
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.strokeRect(qx, qy, qSize, qSize);
+    // 左侧：软件链接 + 邮箱
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#334155";
+    ctx.font = `bold ${14 * scale}px ${fontFam}`;
+    ctx.fillText("扫码查看薪资", pad, qy + 24 * scale);
+    ctx.fillStyle = "#0284c7";
+    ctx.font = `${13 * scale}px ${fontFam}`;
+    ctx.fillText("https://salary.gkux.cn", pad, qy + 52 * scale);
+    ctx.fillStyle = "#64748b";
+    ctx.font = `${12 * scale}px ${fontFam}`;
+    ctx.fillText("联系邮箱：gaoxuejun@wuit.edu.cn", pad, qy + 76 * scale);
+    // 保持引用避免 ts unused（实际二维码在下方 await 后画入）
+  }
+
   // 导出水印：设备信息 + 导出时间，淡色小字斜排平铺
   const ua = new UAParser(navigator.userAgent).getResult();
   const devicePart = [ua.device?.model, ua.os?.name, ua.os?.version].filter(Boolean).join(" · ");
@@ -381,6 +415,27 @@ export function exportSalaryImage(params: {
     }
   }
   ctx.restore();
+
+  // 异步画二维码到占位块（shareUrl 存在时）
+  if (shareUrl) {
+    const qSize = 90 * scale;
+    const fy = y + netH + disclaimH;
+    const qx = w - pad - qSize;
+    const qy = fy + (footerH - qSize) / 2;
+    const qCanvas = document.createElement("canvas");
+    qCanvas.width = qSize;
+    qCanvas.height = qSize;
+    try {
+      await QRCode.toCanvas(qCanvas, shareUrl, {
+        width: qSize,
+        margin: 1,
+        errorCorrectionLevel: "L",
+      });
+      ctx.drawImage(qCanvas, qx, qy, qSize, qSize);
+    } catch {
+      /* 生成失败则保留占位空块 */
+    }
+  }
 
   canvas.toBlob((b) => {
     if (!b) return;

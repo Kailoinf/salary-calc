@@ -7,6 +7,7 @@ import {
   SOCIAL_INSURANCE,
 } from "../utils/salary";
 import { num, yuanToCents } from "../utils/format";
+import { encodeShare } from "../utils/share";
 import { Card, Field, INPUT, MoneyTable, NetPay, SmallBtn, exportSalaryImage, type Row } from "./ui";
 
 type HourField = {
@@ -156,11 +157,25 @@ export function ManualCalc({
         </div>
       </Card>
 
-      <Card title="计算结果" action={<SmallBtn onClick={() => exportSalaryImage({
-        title: `手动算薪 ${ym.year}-${String(ym.month).padStart(2, "0")}`,
-        rows,
-        netPay: r.netPay,
-      })}>导出</SmallBtn>}>
+      <Card title="计算结果" action={<SmallBtn onClick={() => {
+        const d = encodeShare({
+          year: ym.year,
+          month: ym.month,
+          overtime: r.ot,
+          bhours: r.bh,
+          chours: r.ch,
+          fhours: r.fh,
+          nights: r.nd,
+          adjustment: num(adjustment, 0),
+          settings,
+        });
+        exportSalaryImage({
+          title: `手动算薪 ${ym.year}-${String(ym.month).padStart(2, "0")}`,
+          rows,
+          netPay: r.netPay,
+          shareUrl: `https://salary.gkux.cn/?d=${d}`,
+        });
+      }}>导出</SmallBtn>}>
         <MoneyTable rows={rows} />
         <NetPay amount={r.netPay} />
       </Card>

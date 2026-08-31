@@ -11,12 +11,14 @@
   "dependencies": {
     "dayjs": "^1.11.23",
     "lunar-typescript": "^1.8.6",
+    "qrcode": "^1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "ua-parser-js": "^2.0.10"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^6.1.1",
