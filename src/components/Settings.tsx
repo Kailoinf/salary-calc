@@ -88,8 +88,8 @@ export function Settings({
         <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Made by Gakusyun</p>
         <div className="flex justify-center gap-2 flex-wrap">
           <span className="text-xs bg-sky-50 dark:bg-black text-sky-600 dark:text-sky-400 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">Hermes</span>
-          <span className="text-xs bg-sky-50 dark:bg-black text-sky-600 dark:text-sky-400 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">DeepSeek V4 Pro</span>
-          <span className="text-xs bg-sky-50 dark:bg-black text-sky-600 dark:text-sky-400 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">GLM 5.2</span>
+          <span className="text-xs bg-sky-50 dark:bg-black text-sky-600 dark:text-sky-400 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">DeepSeek</span>
+          <span className="text-xs bg-sky-50 dark:bg-black text-sky-600 dark:text-sky-400 px-2.5 py-1 rounded-full border border-sky-100 dark:border-sky-800">GLM</span>
         </div>
       </div>
 
