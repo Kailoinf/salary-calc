@@ -245,7 +245,7 @@ export function exportSalaryImage(params: {
   netPay: number;
 }) {
   const { title, rows, netPay } = params;
-  const scale = 3;
+  const scale = 5;
   const fontFam = '"Inter", "Noto Sans SC", system-ui, sans-serif';
   const pad = 32 * scale;
   const rowH = 28 * scale;
