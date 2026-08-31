@@ -328,10 +328,10 @@ export function exportSalaryImage(params: {
     if (!b) return;
     const a = document.createElement("a");
     a.href = URL.createObjectURL(b);
-    a.download = `薪资_${dayjs().format("YYYY-MM-DD")}.jpg`;
+    a.download = `薪资_${dayjs().format("YYYY-MM-DD")}.png`;
     a.click();
     URL.revokeObjectURL(a.href);
-  }, "image/jpeg", 0.92);
+  }, "image/png");
 }
 
 /** 卡片右上角小按钮（设置/导出） */
