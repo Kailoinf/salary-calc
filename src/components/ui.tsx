@@ -279,7 +279,8 @@ export function exportSalaryImage(params: {
   const bannerH = 28 * scale;
   const sectionH = 36 * scale;
   const netH = 50 * scale;
-  const h = bannerH + 22 * scale + items.reduce((a, it) => a + (it.kind === "section" ? sectionH : rowH), 0) + 8 * scale + netH + 26 * scale;
+  const disclaimH = 30 * scale;
+  const h = bannerH + 22 * scale + items.reduce((a, it) => a + (it.kind === "section" ? sectionH : rowH), 0) + 8 * scale + netH + disclaimH + 16 * scale;
 
   const canvas = document.createElement("canvas");
   canvas.width = w;
@@ -317,7 +318,7 @@ export function exportSalaryImage(params: {
       const emph = it.k === "total";
       if (emph) {
         ctx.fillStyle = "#f1f5f9";
-        ctx.fillRect(pad, y - 18 * scale, w - pad * 2, 36 * scale);
+        ctx.fillRect(pad - 10 * scale, y - 18 * scale, w - pad * 2 + 20 * scale, 36 * scale);
       }
       ctx.fillStyle = emph ? "#0f172a" : "#475569";
       ctx.font = `${emph ? "bold " : ""}${14 * scale}px ${fontFam}`;
@@ -335,7 +336,7 @@ export function exportSalaryImage(params: {
   // 到手工资高亮
   y += 8 * scale;
   ctx.fillStyle = "#ecfdf5";
-  ctx.fillRect(pad, y, w - pad * 2, netH);
+  ctx.fillRect(pad - 10 * scale, y, w - pad * 2 + 20 * scale, netH);
   const midY = y + netH / 2;
   ctx.fillStyle = "#065f46";
   ctx.font = `bold ${16 * scale}px ${fontFam}`;
@@ -345,6 +346,13 @@ export function exportSalaryImage(params: {
   ctx.fillStyle = "#059669";
   ctx.font = `bold ${18 * scale}px ${fontFam}`;
   ctx.fillText(fmt(netPay), w - pad, midY);
+
+  // 免责声明（小字、低调但清晰）
+  const disY = y + netH + disclaimH / 2;
+  ctx.fillStyle = "#64748b";
+  ctx.font = `${10 * scale}px ${fontFam}`;
+  ctx.textAlign = "center";
+  ctx.fillText("注：以上数据由用户手动录入，计算结果仅供参考，实际工资以发放为准。", w / 2, disY);
 
   canvas.toBlob((b) => {
     if (!b) return;
