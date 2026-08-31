@@ -11,7 +11,7 @@ export interface UserSettings {
   adjustment: number; // 奖励/惩罚，分，默认 0 元 = 0，可负
   noSocial: boolean; // 不交社保
   noTax: boolean; // 不交个税
-  cEveryOther: boolean; // 14休1：C班隔一个上一个（第一个C班上班），默认 false
+  cEveryOther: boolean; // 上13休1：C班隔一个上一个（第一个C班上班），默认 false
   taxThreshold: number; // 个税起征点，分，默认 5000 元 = 500000
   taxRate: number; // 个税税率，默认 0.03
 }

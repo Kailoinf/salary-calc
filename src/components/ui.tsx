@@ -165,7 +165,7 @@ function Toggle({
   );
 }
 
-/** 不交社保 / 不交个税 / 14休1 开关 */
+/** 不交社保 / 不交个税 / 上13休1 开关 */
 function DeductionToggles({
   noSocial,
   noTax,
@@ -185,7 +185,7 @@ function DeductionToggles({
     <div className="flex gap-4">
       <Toggle label="不交社保" checked={noSocial} onChange={onSocial} />
       <Toggle label="不交个税" checked={noTax} onChange={onTax} />
-      <Toggle label="14休1" checked={cEveryOther} onChange={onEveryOther} />
+      <Toggle label="上13休1" checked={cEveryOther} onChange={onEveryOther} />
     </div>
   );
 }
@@ -263,7 +263,7 @@ export async function exportSalaryImage(params: {
     | { kind: "row"; label: string; amount: number; k?: string };
   const items: Item[] = [];
   const secMeta: Record<string, { text: string; color: string }> = {
-    fixed: { text: "固定薪资", color: "#0284c7" },
+    fixed: { text: "薪资构成", color: "#0284c7" },
     income: { text: "加班与补贴", color: "#059669" },
     deduction: { text: "扣款", color: "#e11d48" },
   };

@@ -52,7 +52,7 @@ export function ManualCalc({
     // ponytail: 夜班固定0
   }, [stats]);
 
-  // 14休1 自动 C班工时：开启=隔一个上一个(第一个上)，关闭=0(自动清零)。
+  // 上13休1 自动 C班工时：开启=隔一个上一个(第一个上)，关闭=0(自动清零)。
   // 该值独立于下方 C班小时框(手动)，二者相加才进 C班——关闭开关只消自动部分，手动加班保留。
   const autoC = settings.cEveryOther ? Math.ceil(stats.cDayCount / 2) * 11 : 0;
 
@@ -60,7 +60,7 @@ export function ManualCalc({
     const hr = calcBaseHourlyRate(settings.baseSalary);
     const ot = Math.max(0, num(overtime, 0));
     const bh = Math.max(0, num(bhours, 0));
-    const ch = Math.max(0, num(chours, 0)) + autoC; // 手动加班 + 14休1自动
+    const ch = Math.max(0, num(chours, 0)) + autoC; // 手动加班 + 上13休1自动
     const fh = Math.max(0, num(fhours, 0));
     const nd = Math.max(0, num(nights, 0));
     const fixedTotal =

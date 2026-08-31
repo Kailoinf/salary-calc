@@ -4,7 +4,7 @@ import { num, yuanToCents } from "../utils/format";
 import { Card, MoneyTable, NetPay, SmallBtn, type Row } from "./ui";
 import type { ShareData } from "../utils/share";
 
-/** 分享查看页：扫二维码打开 ?d= 后只读展示这份工资单，不出编辑态 */
+/** 分享查看页：扫二维码打开 ?d= 后只读展示这份参考薪资，不出编辑态 */
 export function ShareView({ data }: { data: ShareData }) {
   const { settings } = data;
   const r = useMemo(() => {
@@ -50,7 +50,7 @@ export function ShareView({ data }: { data: ShareData }) {
   return (
     <div className="space-y-4">
       <Card
-        title={`工资单 ${data.year}-${String(data.month).padStart(2, "0")}`}
+        title={`参考薪资 ${data.year}-${String(data.month).padStart(2, "0")}`}
         action={
           <SmallBtn onClick={() => { window.location.href = window.location.origin + window.location.pathname; }}>
             我要计算
@@ -58,7 +58,7 @@ export function ShareView({ data }: { data: ShareData }) {
         }
       >
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          本条工资单由分享链接生成，仅供参考。
+          以上数据由分享者录入，仅供参考。
         </p>
         <MoneyTable rows={rows} />
         <NetPay amount={r.netPay} />
