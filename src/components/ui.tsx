@@ -386,8 +386,9 @@ export async function exportSalaryImage(params: {
     ctx.fillRect(qx, qy, qSize, qSize);
     ctx.strokeStyle = "#e2e8f0";
     ctx.strokeRect(qx, qy, qSize, qSize);
-    // 左侧：软件链接 + 邮箱（垂直居中）
+    // 左侧：软件链接 + 邮箱（垂直居中）——必须重置 textAlign，否则继承上面的 center 会偏出左边缘
     const midY = fy + footerH / 2 - 4 * scale;
+    ctx.textAlign = "left";
     ctx.fillStyle = "#0284c7";
     ctx.font = `${13 * scale}px ${fontFam}`;
     ctx.fillText("https://salary.gkux.cn", pad, midY - 18 * scale);
