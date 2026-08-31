@@ -375,11 +375,12 @@ export async function exportSalaryImage(params: {
     const qx = w - pad - qSize;
     const labelH = 22 * scale; // 标题「扫码计算薪资」占高
     const qy = fy + 16 * scale + labelH; // 标题下方再放二维码
-    // 右侧：标题在二维码上方
-    ctx.textAlign = "left";
+    const qcx = qx + qSize / 2; // 二维码中轴线
+    // 右侧：标题居中于二维码中轴线上方（文字 + 二维码垂直对齐成整体）
+    ctx.textAlign = "center";
     ctx.fillStyle = "#334155";
-    ctx.font = `bold ${13 * scale}px ${fontFam}`;
-    ctx.fillText("扫码计算薪资", qx, fy + 16 * scale + labelH / 2);
+    ctx.font = `${11 * scale}px ${fontFam}`; // 缩小，让标题宽度不超过二维码
+    ctx.fillText("扫码计算薪资", qcx, fy + 16 * scale + labelH / 2);
     // 二维码块：先白底占位，实际码异步画入
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(qx, qy, qSize, qSize);
