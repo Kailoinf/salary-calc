@@ -20,6 +20,7 @@ pnpm build    # 输出到 dist/
 |------|------|
 | **✏️ 手动算薪** | 根据当月排班自动填充 A/B/F 班工时（休息日设置变化时重新填充），可手动修改，即时计算 |
 | **🖼️ 导出图片** | 计算结果一键导出为高分辨率 PNG（过滤 0 金额行） |
+| **🔗 扫码分享** | 导出图底部生成二维码，扫码打开只读薪资摘要页（软件链接 + 邮箱） |
 | **⚙️ 设置弹层** | 全局设置（薪资构成/C班休息日/社保个税开关/14休1）+ 个税参数（起征点/税率）+ 清除数据 |
 | **👋 欢迎弹窗** | 首次打开引导设置薪资构成、休息日和社保个税 |
 | **🌙 深色模式** | 跟随系统 prefers-color-scheme |
@@ -61,12 +62,14 @@ src/
 ├── style.css             # @import "tailwindcss" + 全局隐藏滚动条
 ├── components/
 │   ├── ManualCalc.tsx    # 唯一主页面：工时与奖励 + 计算结果
+│   ├── ShareView.tsx     # 扫码打开 ?d= 后的只读薪资摘要页
 │   ├── Settings.tsx      # 设置弹层（单卡片三区块）+ 清除数据确认弹窗
 │   └── ui.tsx            # 共享组件（Card/Field/SalaryFields/MoneyTable/NetPay 等）
 └── utils/
     ├── salary.ts         # 时薪/个税计算 + 模块级个税参数
     ├── date.ts           # 排班统计（getWorkDaysInMonth）
     ├── settings.ts       # UserSettings + localStorage 持久化（带范围校验）
+    ├── share.ts          # 分享码：工资数据二进制定宽打包 → base64 → ?d=
     ├── holidays.ts       # 法定节假日（lunar-typescript，按年缓存）
     └── format.ts         # 金额格式化/元分换算
 ```
