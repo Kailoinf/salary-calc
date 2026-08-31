@@ -285,6 +285,9 @@ export function exportSalaryImage(params: {
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d")!;
+  // 白底（否则 PNG 透明）
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, w, h);
 
   // 顶部渐变横幅
   const grad = ctx.createLinearGradient(0, 0, w, bannerH);
@@ -314,7 +317,7 @@ export function exportSalaryImage(params: {
       const emph = it.k === "total";
       if (emph) {
         ctx.fillStyle = "#f1f5f9";
-        ctx.fillRect(pad, y - 14 * scale, w - pad * 2, 28 * scale);
+        ctx.fillRect(pad, y - 18 * scale, w - pad * 2, 36 * scale);
       }
       ctx.fillStyle = emph ? "#0f172a" : "#475569";
       ctx.font = `${emph ? "bold " : ""}${14 * scale}px ${fontFam}`;
