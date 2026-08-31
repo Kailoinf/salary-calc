@@ -40,7 +40,7 @@ const SALARY_FIELDS: { key: "baseSalary" | "positionSalary" | "attendanceBonus" 
   ];
 
 /** 4 项薪资构成输入，焦点时本地编辑不干扰，失焦提交到 settings */
-export function SalaryFields({
+function SalaryFields({
   settings,
   onSettings,
 }: {
@@ -166,7 +166,7 @@ function Toggle({
 }
 
 /** 不交社保 / 不交个税 / 14休1 开关 */
-export function DeductionToggles({
+function DeductionToggles({
   noSocial,
   noTax,
   cEveryOther,
