@@ -249,80 +249,99 @@ export function exportSalaryImage(params: {
   const fontFam = '"Inter", "Noto Sans SC", system-ui, sans-serif';
   const pad = 32 * scale;
   const rowH = 28 * scale;
-  const col1 = 260 * scale;
-  const col2 = 160 * scale;
+  const col1 = 300 * scale;
+  const col2 = 180 * scale;
   const w = col1 + col2 + pad * 2;
-  // filter out zero rows
-  const visibleRows = rows.filter(r => r.amount !== 0);
-  const h = pad + 40 * scale + rowH + rowH * visibleRows.length + rowH + rowH + pad;
+  const visible = rows.filter(r => r.amount !== 0);
+
+  // 分组块：按 kind 切分区，标题插在每区首行前（total 行跟随上一块不另起）
+  type Item =
+    | { kind: "section"; text: string; color: string }
+    | { kind: "row"; label: string; amount: number; k?: string };
+  const items: Item[] = [];
+  const secMeta: Record<string, { text: string; color: string }> = {
+    fixed: { text: "固定薪资", color: "#0284c7" },
+    income: { text: "加班与补贴", color: "#059669" },
+    deduction: { text: "扣款", color: "#e11d48" },
+  };
+  let lastGrp = "";
+  for (const r of visible) {
+    // total 行(税前)跟随上一分区，不触发新分区标题
+    if (r.kind === "total") {
+      items.push({ kind: "row", label: r.label, amount: r.amount, k: r.kind });
+      continue;
+    }
+    const grp = r.kind === "income" ? "income" : r.kind === "deduction" ? "deduction" : "fixed";
+    if (grp !== lastGrp) { items.push({ kind: "section", ...secMeta[grp] }); lastGrp = grp; }
+    items.push({ kind: "row", label: r.label, amount: r.amount, k: r.kind });
+  }
+
+  const bannerH = 28 * scale;
+  const sectionH = 36 * scale;
+  const netH = 50 * scale;
+  const h = bannerH + 22 * scale + items.reduce((a, it) => a + (it.kind === "section" ? sectionH : rowH), 0) + 8 * scale + netH + 26 * scale;
 
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d")!;
 
-  // bg
+  // 顶部渐变横幅
+  const grad = ctx.createLinearGradient(0, 0, w, bannerH);
+  grad.addColorStop(0, "#1e40af");
+  grad.addColorStop(1, "#3b82f6");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, bannerH);
   ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, w, h);
-
-  let y = pad;
-  // title
-  ctx.fillStyle = "#0f172a";
-  ctx.font = `bold ${18*scale}px ${fontFam}`;
+  ctx.font = `bold ${18 * scale}px ${fontFam}`;
   ctx.textAlign = "left";
-  ctx.fillText(title, pad, y);
+  ctx.textBaseline = "middle";
+  ctx.fillText(title, pad, bannerH / 2);
 
-  // divider
-  y += 12 * scale;
-  ctx.strokeStyle = "#e2e8f0";
-  ctx.beginPath();
-  ctx.moveTo(pad, y);
-  ctx.lineTo(w - pad, y);
-  ctx.stroke();
-  y += 16 * scale;
+  let y = bannerH + 22 * scale;
+  ctx.textBaseline = "middle";
 
-  // table
-  const drawRow = (label: string, amount: string, kind?: string) => {
-    ctx.font = kind === "total" ? `bold ${14*scale}px ${fontFam}` : `${14*scale}px ${fontFam}`;
-    ctx.textAlign = "left";
-    ctx.fillStyle = kind === "total" ? "#0f172a" : "#475569";
-    ctx.fillText(label, pad, y);
-    ctx.textAlign = "right";
-    if (kind === "income") ctx.fillStyle = "#059669";
-    else if (kind === "deduction") ctx.fillStyle = "#e11d48";
-    else ctx.fillStyle = "#0f172a";
-    ctx.fillText(kind === "deduction" ? "-" + amount : amount, w - pad, y);
-  };
-
-  // alternating bg for rows
-  visibleRows.forEach((r, i) => {
-    if (i % 2 === 0 && r.kind !== "total") {
-      ctx.fillStyle = "#f8fafc";
-      ctx.fillRect(pad - 4 * scale, y - 18 * scale, w - pad * 2 + 8 * scale, rowH);
+  for (const it of items) {
+    if (it.kind === "section") {
+      ctx.fillStyle = it.color;
+      ctx.fillRect(pad, y - 10 * scale, 4 * scale, 20 * scale);
+      ctx.fillStyle = "#334155";
+      ctx.font = `bold ${13 * scale}px ${fontFam}`;
+      ctx.textAlign = "left";
+      ctx.fillText(it.text, pad + 13 * scale, y);
+      y += sectionH;
+    } else {
+      const emph = it.k === "total";
+      if (emph) {
+        ctx.fillStyle = "#f1f5f9";
+        ctx.fillRect(pad, y - 14 * scale, w - pad * 2, 28 * scale);
+      }
+      ctx.fillStyle = emph ? "#0f172a" : "#475569";
+      ctx.font = `${emph ? "bold " : ""}${14 * scale}px ${fontFam}`;
+      ctx.textAlign = "left";
+      ctx.fillText(it.label, pad, y);
+      const amt = it.k === "deduction" ? "-" + fmt(it.amount) : fmt(it.amount);
+      ctx.textAlign = "right";
+      ctx.fillStyle = it.k === "deduction" ? "#e11d48" : it.k === "income" ? "#059669" : "#0f172a";
+      ctx.font = `${emph ? "bold " : ""}${14 * scale}px ${fontFam}`;
+      ctx.fillText(amt, w - pad, y);
+      y += rowH;
     }
-    drawRow(r.label, fmt(r.amount), r.kind);
-    y += rowH;
-  });
+  }
 
-  // divider before net
-  y += 4 * scale;
-  ctx.strokeStyle = "#e2e8f0";
-  ctx.beginPath();
-  ctx.moveTo(pad, y);
-  ctx.lineTo(w - pad, y);
-  ctx.stroke();
-  y += 12 * scale;
-
-  // net pay highlight
+  // 到手工资高亮
+  y += 8 * scale;
   ctx.fillStyle = "#ecfdf5";
-  ctx.fillRect(pad - 4 * scale, y - 18 * scale, w - pad * 2 + 8 * scale, rowH);
-  ctx.font = `bold ${16*scale}px ${fontFam}`;
+  ctx.fillRect(pad, y, w - pad * 2, netH);
+  const midY = y + netH / 2;
+  ctx.fillStyle = "#065f46";
+  ctx.font = `bold ${16 * scale}px ${fontFam}`;
   ctx.textAlign = "left";
-  ctx.fillStyle = "#0f172a";
-  ctx.fillText("到手工资", pad, y);
+  ctx.fillText("到手工资", pad, midY);
   ctx.textAlign = "right";
   ctx.fillStyle = "#059669";
-  ctx.fillText(fmt(netPay), w - pad, y);
+  ctx.font = `bold ${18 * scale}px ${fontFam}`;
+  ctx.fillText(fmt(netPay), w - pad, midY);
 
   canvas.toBlob((b) => {
     if (!b) return;
