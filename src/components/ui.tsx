@@ -1,5 +1,6 @@
 import { type ReactNode, useState } from "react";
 import dayjs from "dayjs";
+import { UAParser } from "ua-parser-js";
 import type { UserSettings } from "../utils/settings";
 import { fmt, WEEKDAY_NAMES, yuanToCents } from "../utils/format";
 
@@ -358,7 +359,9 @@ export function exportSalaryImage(params: {
   ctx.textAlign = "center";
   ctx.fillText("以上数据由用户录入，结果仅供参考，实发以工资条为准。", w / 2, disY);
 
-  // 导出时间水印：淡色、小字、斜排平铺
+  // 导出水印：设备信息 + 导出时间，淡色小字斜排平铺
+  const ua = new UAParser(navigator.userAgent).getResult();
+  const devicePart = [ua.device?.model, ua.os?.name, ua.os?.version].filter(Boolean).join(" · ");
   const ts = dayjs().format("YYYY-MM-DD HH:mm");
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -367,13 +370,14 @@ export function exportSalaryImage(params: {
   ctx.font = `${11 * scale}px ${fontFam}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  const stepX = 260 * scale;
-  const stepY = 120 * scale;
+  const stepX = 320 * scale;
+  const stepY = 150 * scale;
   for (let row = 0; row < Math.ceil(h / stepY) + 2; row++) {
     for (let col = 0; col < Math.ceil(w / stepX) + 2; col++) {
       const x = (col - Math.floor((w / stepX) / 2) - 1) * stepX;
       const y2 = (row - Math.floor((h / stepY) / 2)) * stepY;
-      ctx.fillText(ts, x, y2);
+      if (devicePart) ctx.fillText(devicePart, x, y2 - 12 * scale);
+      ctx.fillText(ts, x, y2 + 12 * scale);
     }
   }
   ctx.restore();
