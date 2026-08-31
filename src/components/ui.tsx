@@ -383,7 +383,7 @@ export async function exportSalaryImage(params: {
     ctx.textAlign = "left";
     ctx.fillStyle = "#334155";
     ctx.font = `bold ${14 * scale}px ${fontFam}`;
-    ctx.fillText("扫码查看薪资", pad, qy + 24 * scale);
+    ctx.fillText("扫码计算薪资", pad, qy + 24 * scale);
     ctx.fillStyle = "#0284c7";
     ctx.font = `${13 * scale}px ${fontFam}`;
     ctx.fillText("https://salary.gkux.cn", pad, qy + 52 * scale);
