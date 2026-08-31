@@ -1,11 +1,7 @@
-// 分享码：把工资数据按固定顺序字段 | 拼接 → base64（URL-safe），塞进 ?d=
-// 不用 JSON（更短、更紧凑）。编码/解码字段顺序必须一致，改顺序要同步两处。
+// 分享码：工资数据二进制定宽打包 → base64(URL-safe)，塞进 ?d=
+// 不用 JSON/分隔符（更短）。字段固定字节布局，encode/decode 必须同步。
 import type { UserSettings } from "./settings";
 
-// 每个工时(时/分/次)与薪资字段顺序。字段全部为数字，布尔用 0/1。
-// 顺序：y|m|overtime|bhours|chours|fhours|nights|adjustment|
-//       baseSalary|positionSalary|attendanceBonus|performanceSalary|
-//       restDayWeekday|noSocial|noTax|cEveryOther|taxThreshold|taxRate
 export type ShareData = {
   year: number;
   month: number;
@@ -14,75 +10,106 @@ export type ShareData = {
   chours: number;
   fhours: number;
   nights: number;
+  // 奖励/惩罚，单位「元」（可负）
   adjustment: number;
   settings: UserSettings;
 };
 
-// URL-safe base64（RFC 4648 §5，btoa 之后替换 +/= 为 -_ 并去掉尾部 =）
-function b64urlEncode(str: string): string {
-  const b64 = btoa(str);
-  return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+// 字节布局（26 字节总长）：
+// [0]year-2000 [1]month
+// [2-3]overtime×2 u16  [4-5]bhours×2 u16  [6-7]chours×2 u16  [8-9]fhours×2 u16
+// [10]nights
+// [11-12]adjustment元 i16  [13-14]baseSalary元 u16  [15-16]positionSalary元 u16
+// [17-18]attendanceBonus元 u16  [19-20]performanceSalary元 u16
+// [21]restDayWeekday  [22]flags(bit0 noSocial bit1 noTax bit2 cEveryOther)
+// [23-24]taxThreshold元 u16  [25]taxRate×100 u8
+const LEN = 26;
+
+function bytesToB64url(bytes: Uint8Array): string {
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 0x1fff) {
+    s += String.fromCharCode(...bytes.subarray(i, i + 0x1fff));
+  }
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-function b64urlDecode(s: string): string {
+function b64urlToBytes(s: string): Uint8Array {
   const b64 = s.replace(/-/g, "+").replace(/_/g, "/");
   const pad = b64.length % 4 === 0 ? "" : "=".repeat(4 - (b64.length % 4));
-  return atob(b64 + pad);
+  const bin = atob(b64 + pad);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
 }
 
 export function encodeShare(d: ShareData): string {
-  const s = [
-    d.year,
-    d.month,
-    d.overtime,
-    d.bhours,
-    d.chours,
-    d.fhours,
-    d.nights,
-    d.adjustment,
-    d.settings.baseSalary,
-    d.settings.positionSalary,
-    d.settings.attendanceBonus,
-    d.settings.performanceSalary,
-    d.settings.restDayWeekday,
-    d.settings.noSocial ? 1 : 0,
-    d.settings.noTax ? 1 : 0,
-    d.settings.cEveryOther ? 1 : 0,
-    d.settings.taxThreshold,
-    d.settings.taxRate,
-  ].join("|");
-  return b64urlEncode(s);
+  const ul = d.settings;
+  const b = new Uint8Array(LEN);
+  const v = new DataView(b.buffer);
+  let o = 0;
+  v.setUint8(o++, d.year - 2000);
+  v.setUint8(o++, d.month);
+  v.setUint16(o, Math.round(d.overtime * 2)); o += 2;
+  v.setUint16(o, Math.round(d.bhours * 2)); o += 2;
+  v.setUint16(o, Math.round(d.chours * 2)); o += 2;
+  v.setUint16(o, Math.round(d.fhours * 2)); o += 2;
+  v.setUint8(o++, d.nights);
+  v.setInt16(o, Math.round(d.adjustment)); o += 2; // 元，可负
+  v.setUint16(o, Math.round(ul.baseSalary / 100)); o += 2; // 元
+  v.setUint16(o, Math.round(ul.positionSalary / 100)); o += 2;
+  v.setUint16(o, Math.round(ul.attendanceBonus / 100)); o += 2;
+  v.setUint16(o, Math.round(ul.performanceSalary / 100)); o += 2;
+  v.setUint8(o++, ul.restDayWeekday);
+  v.setUint8(o++, (ul.noSocial ? 1 : 0) | (ul.noTax ? 2 : 0) | (ul.cEveryOther ? 4 : 0));
+  v.setUint16(o, Math.round(ul.taxThreshold / 100)); o += 2; // 元
+  v.setUint8(o++, Math.floor(ul.taxRate * 100));
+  return bytesToB64url(b);
 }
 
 export function decodeShare(encoded: string): ShareData | null {
   try {
-    const raw = b64urlDecode(encoded);
-    const p = raw.split("|");
-    if (p.length !== 18) return null;
-    const n = (i: number) => Number(p[i]);
-    if (![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16, 17].every((i) => Number.isFinite(n(i)))) return null;
-    const flags = [13, 14, 15].map((i) => n(i) === 1);
+    const b = b64urlToBytes(encoded);
+    if (b.length !== LEN) return null;
+    const v = new DataView(b.buffer);
+    let o = 0;
+    const year = v.getUint8(o++) + 2000;
+    const month = v.getUint8(o++);
+    const overtime = v.getUint16(o) / 2; o += 2;
+    const bhours = v.getUint16(o) / 2; o += 2;
+    const chours = v.getUint16(o) / 2; o += 2;
+    const fhours = v.getUint16(o) / 2; o += 2;
+    const nights = v.getUint8(o++);
+    const adjustment = v.getInt16(o); o += 2; // 元
+    const baseSalary = v.getUint16(o) * 100; o += 2;
+    const positionSalary = v.getUint16(o) * 100; o += 2;
+    const attendanceBonus = v.getUint16(o) * 100; o += 2;
+    const performanceSalary = v.getUint16(o) * 100; o += 2;
+    const restDayWeekday = v.getUint8(o++);
+    const flags = v.getUint8(o++);
+    const taxThreshold = v.getUint16(o) * 100; o += 2;
+    const taxRate = v.getUint8(o++) / 100;
+    if (![year, month, overtime, bhours, chours, fhours, nights, adjustment, restDayWeekday, taxRate].every((n) => Number.isFinite(n))) return null;
     return {
-      year: n(0),
-      month: n(1),
-      overtime: n(2),
-      bhours: n(3),
-      chours: n(4),
-      fhours: n(5),
-      nights: n(6),
-      adjustment: n(7),
+      year,
+      month,
+      overtime,
+      bhours,
+      chours,
+      fhours,
+      nights,
+      adjustment,
       settings: {
-        baseSalary: n(8),
-        positionSalary: n(9),
-        attendanceBonus: n(10),
-        performanceSalary: n(11),
-        restDayWeekday: n(12),
-        adjustment: n(7),
-        noSocial: flags[0],
-        noTax: flags[1],
-        cEveryOther: flags[2],
-        taxThreshold: n(16),
-        taxRate: n(17),
+        baseSalary,
+        positionSalary,
+        attendanceBonus,
+        performanceSalary,
+        restDayWeekday,
+        adjustment: adjustment * 100, // 分
+        noSocial: !!(flags & 1),
+        noTax: !!(flags & 2),
+        cEveryOther: !!(flags & 4),
+        taxThreshold,
+        taxRate,
       },
     };
   } catch {
