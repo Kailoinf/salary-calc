@@ -8,7 +8,7 @@ import {
 } from "../utils/salary";
 import { num, yuanToCents } from "../utils/format";
 import { encodeShare } from "../utils/share";
-import { Card, Field, INPUT, MoneyTable, NetPay, SmallBtn, exportSalaryImage, type Row } from "./ui";
+import { Card, Field, INPUT, MoneyTable, NetPay, SmallBtn, type Row } from "./ui";
 
 type HourField = {
   label: string;
@@ -160,41 +160,21 @@ export function ManualCalc({
       <Card
         title="计算结果"
         action={
-          <div className="flex items-center gap-2">
-            <SmallBtn onClick={async () => {
-              const url = `https://salary.gkux.cn/?p=${encodeShare({
-                year: ym.year,
-                month: ym.month,
-                overtime: r.ot,
-                bhours: r.bh,
-                chours: r.ch,
-                fhours: r.fh,
-                nights: r.nd,
-                adjustment: num(adjustment, 0),
-                settings,
-              })}.png`;
-              try { await navigator.clipboard.writeText(url); } catch { /* 剪贴板不可用则忽略 */ }
-            }}>复制图链接</SmallBtn>
-            <SmallBtn onClick={() => {
-              const d = encodeShare({
-                year: ym.year,
-                month: ym.month,
-                overtime: r.ot,
-                bhours: r.bh,
-                chours: r.ch,
-                fhours: r.fh,
-                nights: r.nd,
-                adjustment: num(adjustment, 0),
-                settings,
-              });
-              exportSalaryImage({
-                title: `参考薪资 ${ym.year}-${String(ym.month).padStart(2, "0")}`,
-                rows,
-                netPay: r.netPay,
-                shareUrl: `https://salary.gkux.cn/?d=${d}`,
-              });
-            }}>导出</SmallBtn>
-          </div>
+          <SmallBtn onClick={() => {
+            const d = encodeShare({
+              year: ym.year,
+              month: ym.month,
+              overtime: r.ot,
+              bhours: r.bh,
+              chours: r.ch,
+              fhours: r.fh,
+              nights: r.nd,
+              adjustment: num(adjustment, 0),
+              settings,
+            });
+            // 导出=跳转到分享图片页（正常页面渲染图），图里二维码仍指向 ShareView ?d=
+            window.location.href = `https://salary.gkux.cn/?p=${d}`;
+          }}>导出</SmallBtn>
         }
       >
         <MoneyTable rows={rows} />

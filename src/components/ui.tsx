@@ -446,24 +446,6 @@ export async function drawSalaryCanvas(params: {
   return canvas;
 }
 
-/** 高分辨率图片导出：传入行数据 + 到手金额，绘制后下载为 PNG */
-export async function exportSalaryImage(params: {
-  title: string;
-  rows: Row[];
-  netPay: number;
-  shareUrl?: string;
-}) {
-  const canvas = await drawSalaryCanvas(params);
-  canvas.toBlob((b) => {
-    if (!b) return;
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(b);
-    a.download = `薪资_${dayjs().format("YYYY-MM-DD")}.png`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }, "image/png");
-}
-
 /** 卡片右上角小按钮（设置/导出） */
 export function SmallBtn({ onClick, children }: { onClick: () => void; children: ReactNode }) {
   return (

@@ -27,17 +27,15 @@ export default function App() {
   );
   const [showSettings, setShowSettings] = useState(false);
 
-  // 分享模式：URL 带 ?d= 只读表格页，带 ?p=<base64>.png 只读图片页。均不弹欢迎、不出编辑。
-  // ponytail: .png 后缀仅作为可复制链接的落点，解码前剥掉
+  // 分享模式：URL 带 ?d= 只读表格页，带 ?p=<base64> 只读图片页。均不弹欢迎、不出编辑。
   const route = useMemo(() => {
     const q = new URLSearchParams(window.location.search);
     const d = q.get("d");
     if (d) { const data = decodeShare(d); return data ? { kind: "table" as const, data } : null; }
     const p = q.get("p");
     if (p) {
-      const code = p.replace(/\.png$/i, "");
-      const data = decodeShare(code);
-      return data ? { kind: "image" as const, data, code } : null;
+      const data = decodeShare(p);
+      return data ? { kind: "image" as const, data, code: p } : null;
     }
     return null;
   }, []);
