@@ -11,15 +11,16 @@ import type { ShareData } from "../utils/share";
  */
 export function ShareImagePage({ data, code }: { data: ShareData; code: string }) {
   const [canvasRef, setCanvas] = useState<HTMLCanvasElement | null>(null);
-  // 卡片标题不用「参考薪资」(图内 banner 已带 参考薪资+年月)，改简洁分类名
-  const title = `薪资图片 ${data.year}-${String(data.month).padStart(2, "0")}`;
+  // 图内 banner 标题 = 参考薪资 + 年月（核算月份）；卡片标题 = 薪资图片（不带月份）
+  const imgTitle = `参考薪资 ${data.year}-${String(data.month).padStart(2, "0")}`;
+  const title = "薪资图片";
 
   useEffect(() => {
     let alive = true;
     (async () => {
       const { rows, netPay } = buildShare(data);
       const canvas = await drawSalaryCanvas({
-        title,
+        title: imgTitle,
         rows,
         netPay,
         shareUrl: `https://salary.gkux.cn/?d=${encodeURIComponent(code)}`,
