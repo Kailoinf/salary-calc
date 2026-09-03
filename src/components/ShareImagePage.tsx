@@ -11,7 +11,8 @@ import type { ShareData } from "../utils/share";
  */
 export function ShareImagePage({ data, code }: { data: ShareData; code: string }) {
   const [canvasRef, setCanvas] = useState<HTMLCanvasElement | null>(null);
-  const title = `参考薪资 ${data.year}-${String(data.month).padStart(2, "0")}`;
+  // 卡片标题不用「参考薪资」(图内 banner 已带 参考薪资+年月)，改简洁分类名
+  const title = `薪资图片 ${data.year}-${String(data.month).padStart(2, "0")}`;
 
   useEffect(() => {
     let alive = true;
