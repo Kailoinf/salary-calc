@@ -240,13 +240,13 @@ export function GlobalSettingsFields({
   );
 }
 
-/** 高分辨率图片导出：传入行数据 + 到手金额，下载为 PNG */
-export async function exportSalaryImage(params: {
+/** 绘制薪资图到 canvas（含二维码），导出下载 & 分享图片页 `?p=` 共用 */
+export async function drawSalaryCanvas(params: {
   title: string;
   rows: Row[];
   netPay: number;
   shareUrl?: string;
-}) {
+}): Promise<HTMLCanvasElement> {
   const { title, rows, netPay, shareUrl } = params;
   const scale = 5;
   const fontFam = '"Inter", "Noto Sans SC", system-ui, sans-serif';
@@ -443,6 +443,17 @@ export async function exportSalaryImage(params: {
     }
   }
 
+  return canvas;
+}
+
+/** 高分辨率图片导出：传入行数据 + 到手金额，绘制后下载为 PNG */
+export async function exportSalaryImage(params: {
+  title: string;
+  rows: Row[];
+  netPay: number;
+  shareUrl?: string;
+}) {
+  const canvas = await drawSalaryCanvas(params);
   canvas.toBlob((b) => {
     if (!b) return;
     const a = document.createElement("a");

@@ -6,6 +6,7 @@ import { ManualCalc } from "./components/ManualCalc";
 import { Settings } from "./components/Settings";
 import { GlobalSettingsFields } from "./components/ui";
 import { ShareView } from "./components/ShareView";
+import { ShareImagePage } from "./components/ShareImagePage";
 import { decodeShare } from "./utils/share";
 
 /**
@@ -26,10 +27,19 @@ export default function App() {
   );
   const [showSettings, setShowSettings] = useState(false);
 
-  // 分享模式：URL 带 ?d= 时只读展示（扫二维码打开），不弹欢迎、不出编辑
-  const share = useMemo(() => {
-    const d = new URLSearchParams(window.location.search).get("d");
-    return d ? decodeShare(d) : null;
+  // 分享模式：URL 带 ?d= 只读表格页，带 ?p=<base64>.png 只读图片页。均不弹欢迎、不出编辑。
+  // ponytail: .png 后缀仅作为可复制链接的落点，解码前剥掉
+  const route = useMemo(() => {
+    const q = new URLSearchParams(window.location.search);
+    const d = q.get("d");
+    if (d) { const data = decodeShare(d); return data ? { kind: "table" as const, data } : null; }
+    const p = q.get("p");
+    if (p) {
+      const code = p.replace(/\.png$/i, "");
+      const data = decodeShare(code);
+      return data ? { kind: "image" as const, data, code } : null;
+    }
+    return null;
   }, []);
 
   const updateSettings = useCallback((s: UserSettings) => {
@@ -50,8 +60,12 @@ export default function App() {
   return (
     <div className="min-h-screen bg-white dark:bg-black text-slate-800 dark:text-slate-100">
       <div className="mx-auto max-w-4xl px-4 py-6 space-y-5">
-        {share ? (
-          <ShareView data={share} />
+        {route ? (
+          route.kind === "image" ? (
+            <ShareImagePage data={route.data} code={route.code} />
+          ) : (
+            <ShareView data={route.data} />
+          )
         ) : (
           <ManualCalc
             settings={settings}
@@ -68,7 +82,7 @@ export default function App() {
         </footer>
       </div>
 
-      {!share && showWelcome && (
+      {!route && showWelcome && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 p-4">
           <div className="flex min-h-full items-center justify-center">
             <div className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-xl max-w-md w-full space-y-3">
@@ -94,7 +108,7 @@ export default function App() {
         </div>
       )}
 
-      {showSettings && (
+      {!route && showSettings && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 p-4">
           <div className="flex min-h-full items-center justify-center">
             <div className="bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-700 p-4 shadow-xl max-w-xl w-full my-8">

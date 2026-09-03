@@ -157,25 +157,46 @@ export function ManualCalc({
         </div>
       </Card>
 
-      <Card title="计算结果" action={<SmallBtn onClick={() => {
-        const d = encodeShare({
-          year: ym.year,
-          month: ym.month,
-          overtime: r.ot,
-          bhours: r.bh,
-          chours: r.ch,
-          fhours: r.fh,
-          nights: r.nd,
-          adjustment: num(adjustment, 0),
-          settings,
-        });
-        exportSalaryImage({
-          title: `参考薪资 ${ym.year}-${String(ym.month).padStart(2, "0")}`,
-          rows,
-          netPay: r.netPay,
-          shareUrl: `https://salary.gkux.cn/?d=${d}`,
-        });
-      }}>导出</SmallBtn>}>
+      <Card
+        title="计算结果"
+        action={
+          <div className="flex items-center gap-2">
+            <SmallBtn onClick={async () => {
+              const url = `https://salary.gkux.cn/?p=${encodeShare({
+                year: ym.year,
+                month: ym.month,
+                overtime: r.ot,
+                bhours: r.bh,
+                chours: r.ch,
+                fhours: r.fh,
+                nights: r.nd,
+                adjustment: num(adjustment, 0),
+                settings,
+              })}.png`;
+              try { await navigator.clipboard.writeText(url); } catch { /* 剪贴板不可用则忽略 */ }
+            }}>复制图链接</SmallBtn>
+            <SmallBtn onClick={() => {
+              const d = encodeShare({
+                year: ym.year,
+                month: ym.month,
+                overtime: r.ot,
+                bhours: r.bh,
+                chours: r.ch,
+                fhours: r.fh,
+                nights: r.nd,
+                adjustment: num(adjustment, 0),
+                settings,
+              });
+              exportSalaryImage({
+                title: `参考薪资 ${ym.year}-${String(ym.month).padStart(2, "0")}`,
+                rows,
+                netPay: r.netPay,
+                shareUrl: `https://salary.gkux.cn/?d=${d}`,
+              });
+            }}>导出</SmallBtn>
+          </div>
+        }
+      >
         <MoneyTable rows={rows} />
         <NetPay amount={r.netPay} />
       </Card>
